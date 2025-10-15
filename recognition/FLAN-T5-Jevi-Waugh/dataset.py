@@ -64,3 +64,16 @@ class BioDatasetLoader():
         """
         return (f"num_workers={self.num_workers},"  
                 f"Length of the dataset {len(self)}")
+
+def main(): 
+    # Testing dataloader
+    dataset = BioDatasetLoader(); 
+    # we can choose which ones we wanna load - 
+    dataset.load_dataset()
+    print(f"Training size: {dataset.get_size(dataset.train)}")
+    print(f"Testing size: {dataset.get_size(dataset.test)}")
+    print(f"Validation size: {dataset.get_size(dataset.validation)}")
+    print(f"Dataset size: {len(dataset)}")
+    
+    
+if __name__ == "__main__": main()
