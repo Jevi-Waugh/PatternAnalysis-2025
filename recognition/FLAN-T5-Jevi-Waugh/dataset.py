@@ -37,4 +37,30 @@ class BioDatasetLoader():
         self.test = data.get("test")
         self.validation = data.get("validation")
         
+    def __len__(self) -> int:
+        """Returns cumulative dataset size.
+
+        Returns:
+            _type_: Size of the entire dataset.
+        """
+        return sum(len(data) for data in [self.train, self.test, self.validation] if data is not None)
     
+    def get_size(self, dataset: Literal["train", "test", "validation"]) -> int:
+        """returns the size of a specific dataset.
+
+        Args:
+            dataset (Literal[&quot;train&quot;, &quot;test&quot;, &quot;validation&quot;]): dataset. for e.g. self.train
+
+        Returns:
+            _type_: Size of the given dataset
+        """
+        return len(dataset)
+    
+    def __repr__(self) -> None:
+        """A summary of the dataset loader.
+
+        Returns:
+            _type_: None
+        """
+        return (f"num_workers={self.num_workers},"  
+                f"Length of the dataset {len(self)}")
