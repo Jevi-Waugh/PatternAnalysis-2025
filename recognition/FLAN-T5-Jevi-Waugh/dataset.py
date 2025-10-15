@@ -16,7 +16,6 @@ class BioDatasetLoader():
         self.test = None
         self.validation = None
         self.num_workers = workers
-        self.datatype = ["train", "test", "validation"]
 
     def load_dataset(self, splits=("train", "test", "validation")) -> None:
         """This loads the dataset and stores in the datasetloader. If splits is empty, then the loader
@@ -43,7 +42,7 @@ class BioDatasetLoader():
         Returns:
             _type_: Size of the entire dataset.
         """
-        return sum(len(data) for data in self.datatype if data is not None)
+        return sum(len(data) for data in [self.train, self.test, self.validation] if data is not None)
     
     def get_size(self, dataset: Literal["train", "test", "validation"]) -> int:
         """returns the size of a specific dataset.
