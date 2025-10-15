@@ -4,7 +4,7 @@ from typing_extensions import Literal
 # Author: Jevi Waugh
 
 class BioDatasetLoader():
-    """This dataset Loader loads the BioLaySumm dataset and loads the required 
+    """This dataset Loader loads the BioLaySumm dataset and loads the required data.
     """
     
     logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ class BioDatasetLoader():
         Returns:
             _type_: Size of the entire dataset.
         """
-        return sum(len(data) for data in [self.train, self.test, self.validation] if data is not None)
+        return sum(len(data) for data in self.datatype if data is not None)
     
     def get_size(self, dataset: Literal["train", "test", "validation"]) -> int:
         """returns the size of a specific dataset.
