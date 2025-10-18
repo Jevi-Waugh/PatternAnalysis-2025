@@ -1,6 +1,11 @@
-from datasets import load_dataset
 import logging
-from typing_extensions import Literal
+from typing_extensions import Literal, Tuple
+from datasets import load_dataset
+from transformers import AutoTokenizer
+import evaluate
+from transformers import DataCollatorForSeq2Seq
+import numpy as np
+from transformers import AutoModelForSeq2SeqLM, Seq2SeqTrainingArguments, Seq2SeqTrainer
 # Author: Jevi Waugh
 
 class BioDatasetLoader():
@@ -16,7 +21,36 @@ class BioDatasetLoader():
         self.test = None
         self.validation = None
         self.num_workers = workers
+        self.tokeniser = None
+        self.model_name = None
 
+    def __len__(self) -> int:
+        """Returns cumulative dataset size.
+
+        Returns:
+            _type_: Size of the entire dataset.
+        """
+        return sum(len(data) for data in [self.train, self.test, self.validation] if data is not None)
+    
+    def __repr__(self) -> None:
+        """A summary of the dataset loader.
+
+        Returns:
+            _type_: None
+        """
+        return (f"num_workers={self.num_workers},"  
+                f"Length of the dataset {len(self)}")
+        
+    def get_size(self, dataset: Literal["train", "test", "validation"]) -> int:
+        """returns the size of a specific dataset.
+
+        Args:
+            dataset (Literal[&quot;train&quot;, &quot;test&quot;, &quot;validation&quot;]): dataset. for e.g. self.train
+
+        Returns:
+            _type_: Size of the given dataset
+        """
+        return len(dataset)
     def load_dataset(self, splits=("train", "test", "validation")) -> None:
         """This loads the dataset and stores in the datasetloader. If splits is empty, then the loader
             funtion will load all train, test and validation datasets if available.
@@ -36,43 +70,73 @@ class BioDatasetLoader():
         self.test = data.get("test")
         self.validation = data.get("validation")
         
-    def __len__(self) -> int:
-        """Returns cumulative dataset size.
-
-        Returns:
-            _type_: Size of the entire dataset.
-        """
-        return sum(len(data) for data in [self.train, self.test, self.validation] if data is not None)
     
-    def get_size(self, dataset: Literal["train", "test", "validation"]) -> int:
-        """returns the size of a specific dataset.
+    def _load_tokeniser(self, checkpoint=None):
+        # use small model
+        if checkpoint is None: checkpoint = "google/flan-t5-small"
+        self.model_name = checkpoint
+        self.tokeniser = AutoTokenizer.from_pretrained(checkpoint)
+    
+    def preprocessing(self, data):
+        """Preproccesses data by prepending summarisation query to input and further
+           tokenises the data.
 
         Args:
-            dataset (Literal[&quot;train&quot;, &quot;test&quot;, &quot;validation&quot;]): dataset. for e.g. self.train
+            data (_type_): The data being processed. For example a radiology report.
 
         Returns:
-            _type_: Size of the given dataset
+            _type_: The inputs of the modle
         """
-        return len(dataset)
+        prefix = "summarise: "
+        
+        # ask for shakes if i can do system prompts/
+        # system_prompt = ""
+        # The model needs to know that this is a summarisation task
+        summ_input = [prefix + d for d in data["radiology_report"]]
+        self._load_tokeniser()
+        # max length by 128
+        MODEL_INPUTS = self.tokeniser(summ_input, max_length=128, truncation=True)
+        LABELS = self.tokeniser(text_target=data["layman_report"], max_length=128, truncation=True)
+        MODEL_INPUTS["labels"] = LABELS["input_ids"]
+        return MODEL_INPUTS
     
-    def __repr__(self) -> None:
-        """A summary of the dataset loader.
+
+    def process_dataset(self, dataset):
+        """Preprocesses the dataset 
+
+        Args:
+            dataset (_type_): Dataset
 
         Returns:
-            _type_: None
+            _type_: Proccessed dataset
         """
-        return (f"num_workers={self.num_workers},"  
-                f"Length of the dataset {len(self)}")
+        return dataset.map(self.preprocessing, batched=True)
+    
+    def _paddding(self): 
+        if not hasattr(self, "data_collator"):
+            self.data_collator = DataCollatorForSeq2Seq(tokenizer=self.tokeniser, model=self.model_name)
+            
+
+        
 
 def main(): 
     # Testing dataloader
-    dataset = BioDatasetLoader(); 
+    BioLoader = BioDatasetLoader(); 
     # we can choose which ones we wanna load - 
-    dataset.load_dataset()
-    print(f"Training size: {dataset.get_size(dataset.train)}")
-    print(f"Testing size: {dataset.get_size(dataset.test)}")
-    print(f"Validation size: {dataset.get_size(dataset.validation)}")
-    print(f"Dataset size: {len(dataset)}")
+    BioLoader.load_dataset()
+    print(f"Training size: {BioLoader.get_size(BioLoader.train)}")
+    print(f"Testing size: {BioLoader.get_size(BioLoader.test)}")
+    print(f"Validation size: {BioLoader.get_size(BioLoader.validation)}")
+    print(f"Dataset size: {len(BioLoader)}")
+    
+    # print(dataset.train[0])
+    # Load tokeniser
+    BioLoader._load_tokeniser()
+    
+    # pad inputs
+    BioLoader._paddding()
+    
+
     
     
 if __name__ == "__main__": main()
