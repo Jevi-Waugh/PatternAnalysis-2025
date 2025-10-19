@@ -76,6 +76,7 @@ class BioDatasetLoader():
         if checkpoint is None: checkpoint = "google/flan-t5-small"
         self.model_name = checkpoint
         self.tokeniser = AutoTokenizer.from_pretrained(checkpoint)
+        return self.tokeniser
     
     def preprocessing(self, data):
         """Preproccesses data by prepending summarisation query to input and further
@@ -88,15 +89,16 @@ class BioDatasetLoader():
             _type_: The inputs of the modle
         """
         prefix = "summarise: "
+        prefix2 = "Create a lay summary of this radiology report for a general audience:: "
         
         # ask for shakes if i can do system prompts/
         # system_prompt = ""
         # The model needs to know that this is a summarisation task
-        summ_input = [prefix + d for d in data["radiology_report"]]
+        summ_input = [prefix2 + d for d in data["radiology_report"]]
         self._load_tokeniser()
         # max length by 128
-        MODEL_INPUTS = self.tokeniser(summ_input, max_length=128, truncation=True)
-        LABELS = self.tokeniser(text_target=data["layman_report"], max_length=128, truncation=True)
+        MODEL_INPUTS = self.tokeniser(summ_input, max_length=512, truncation=True, padding="max_length")
+        LABELS = self.tokeniser(text_target=data["layman_report"], max_length=256, truncation=True, padding="max_length")
         MODEL_INPUTS["labels"] = LABELS["input_ids"]
         return MODEL_INPUTS
     
@@ -112,7 +114,7 @@ class BioDatasetLoader():
         """
         return dataset.map(self.preprocessing, batched=True)
     
-    def _paddding(self): 
+    def _padding(self): 
         if not hasattr(self, "data_collator"):
             self.data_collator = DataCollatorForSeq2Seq(tokenizer=self.tokeniser, model=self.model_name)
             
@@ -145,6 +147,7 @@ class BioDatasetLoader():
     
     def load_model(self) -> Seq2SeqTrainer:
         model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
+
         training_args = Seq2SeqTrainingArguments(
             output_dir="BioLaySumm",
             eval_strategy="epoch",
@@ -155,19 +158,23 @@ class BioDatasetLoader():
             save_total_limit=3,
             num_train_epochs=4,
             predict_with_generate=True,
-            fp16=True, #change to bf16=True for XPU
+            bf16=True,        # enable bfloat16
+            fp16=False,       # disable fp16 if using bf16
             push_to_hub=False,
         )
-        
+
+        self._padding()  # ensure data collator exists
+
         trainer = Seq2SeqTrainer(
             model=model,
             args=training_args,
             train_dataset=self.process_dataset(self.train),
             eval_dataset=self.process_dataset(self.validation),
-            processing_class=self.tokeniser,
+            tokenizer=self.tokeniser,
             data_collator=self.data_collator,
             compute_metrics=self.compute_rouge_scores,
         )
+
         return trainer
         
 
@@ -181,18 +188,20 @@ def main():
     print(f"Validation size: {BioLoader.get_size(BioLoader.validation)}")
     print(f"Dataset size: {len(BioLoader)}")
     
-    # print(dataset.train[0])
+    # Print first data to evaluate 
+    print(BioLoader.train[0])
+    
     # Load tokeniser
     BioLoader._load_tokeniser()
     
     # pad inputs
-    BioLoader._paddding()
+    BioLoader._padding()
     
     # Load model
     trainer = BioLoader.load_model()
     
-    # # train
-    # trainer.train()
+    # train
+    trainer.train()
     
     
 if __name__ == "__main__": main()
