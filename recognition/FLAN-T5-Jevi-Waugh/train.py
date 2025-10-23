@@ -16,7 +16,7 @@ from dataset import BioDatasetLoader
 from modules import FLAN_T5_LoRA, FLAN_T5_FullFineTuning
 
 
-class Trainer:
+class FlanT5_Trainer:
     """Optimised Trainer for FLAN Models"""
     
     def __init__(self, model, tokenizer, train_dataset, test_dataset, data_collator,
