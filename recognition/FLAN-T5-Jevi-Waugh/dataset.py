@@ -1,3 +1,5 @@
+# dataset.py
+# Author: Jevi Waugh
 import logging
 from typing_extensions import Literal, Tuple
 from datasets import load_dataset
@@ -6,7 +8,6 @@ import evaluate
 from transformers import DataCollatorForSeq2Seq
 import numpy as np
 from transformers import AutoModelForSeq2SeqLM, Seq2SeqTrainingArguments, Seq2SeqTrainer
-# Author: Jevi Waugh
 
 class BioDatasetLoader():
     """This dataset Loader loads the BioLaySumm dataset and loads the required data.
