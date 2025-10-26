@@ -112,70 +112,13 @@ class BioDatasetLoader():
         Returns:
             _type_: Proccessed dataset
         """
+        # perhaps remove columns??
         return dataset.map(self.preprocessing, batched=True)
     
     def _padding(self): 
         if not hasattr(self, "data_collator"):
             self.data_collator = DataCollatorForSeq2Seq(tokenizer=self.tokeniser, model=self.model_name)
-            
-
-    def compute_rouge_scores(self, eval_pred: Tuple):
-        """This computes all rouge scores (rouge1, rouge2, rougeL, rougeLsum).
-
-        Args:
-            eval_pred (_type_): Tuple passed by the trainer durig an evaluation which has token
-                                IDs output bu the model. The second part of the tuple are the labels
-                                are the token IDs of the reference sumamries.
-
-        Returns:
-            _type_: _description_
-        """
-        rouge = evaluate.load("rouge")
-        predictions, labels = eval_pred
-        # Transforming the predictions to human readable texts, remove cls/eos or other padding
-        decoded_preds = self.tokeniser.batch_decode(predictions, skip_special_tokens=True)
-        labels = np.where(labels != -100, labels, self.tokeniser.pad_token_id)
-        # Decode label IDs into reference text strings.
-        decoded_labels = self.tokeniser.batch_decode(labels, skip_special_tokens=True)
-        # Use stemmer to normlaise certain words.
-        result = rouge.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
-
-        prediction_lens = [np.count_nonzero(pred != self.tokeniser.pad_token_id) for pred in predictions]
-        result["gen_len"] = np.mean(prediction_lens)
-
-        return {key: round(val, 4) for key, val in result.items()}
-    
-    def load_model(self) -> Seq2SeqTrainer:
-        model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
-
-        training_args = Seq2SeqTrainingArguments(
-            output_dir="BioLaySumm",
-            eval_strategy="epoch",
-            learning_rate=2e-5,
-            per_device_train_batch_size=16,
-            per_device_eval_batch_size=16,
-            weight_decay=0.01,
-            save_total_limit=3,
-            num_train_epochs=4,
-            predict_with_generate=True,
-            bf16=True,        # enable bfloat16
-            fp16=False,       # disable fp16 if using bf16
-            push_to_hub=False,
-        )
-
-        self._padding()  # ensure data collator exists
-
-        trainer = Seq2SeqTrainer(
-            model=model,
-            args=training_args,
-            train_dataset=self.process_dataset(self.train),
-            eval_dataset=self.process_dataset(self.validation),
-            tokenizer=self.tokeniser,
-            data_collator=self.data_collator,
-            compute_metrics=self.compute_rouge_scores,
-        )
-
-        return trainer
+            print("Data collator initialized")
         
 
 def main(): 
@@ -196,12 +139,5 @@ def main():
     
     # pad inputs
     BioLoader._padding()
-    
-    # Load model
-    trainer = BioLoader.load_model()
-    
-    # train
-    trainer.train()
-    
     
 if __name__ == "__main__": main()
