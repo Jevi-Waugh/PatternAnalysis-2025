@@ -5,7 +5,10 @@ from dataset import BioDatasetLoader
 from transformers import AutoModelForSeq2SeqLM, Seq2SeqTrainingArguments, Seq2SeqTrainer
 from peft import LoraConfig, get_peft_model
 from transformers import DataCollatorForSeq2Seq
-
+import torch
+from torch.utils.data import DataLoader
+from torch.optim import AdamW
+import evaluate
 class FLAN_T5:
     def __init__(self, DataLoader, model_name="google/flan-t5-small"):
         self.dataloader = DataLoader()
@@ -14,42 +17,26 @@ class FLAN_T5:
         self.model_name = model_name
         self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
         self.data_collator = None
+        
+        # Count parameters
+        total_params = sum(param.numel() for param in self.model.parameters())
+        train_params = sum(param.numel() for param in self.model.parameters() if param.requires_grad)
+        print(f"Full fine-tuning: {train_params:,} trainable parameters out of {total_params:,} ({train_params/total_params*100:.2f}%)")
+    
 
     def _padding(self):
-        """Ensure the data collator exists."""
+        """This is to ensure that we have padding in case it does not set up"""
         if not self.data_collator:
             self.data_collator = DataCollatorForSeq2Seq(
                 tokenizer=self.tokeniser,
                 model=self.model
             )
-
-    def load_model(self):
-        self._padding()
-        training_args = Seq2SeqTrainingArguments(
-            output_dir="BioLaySumm",
-            eval_strategy="epoch",
-            learning_rate=5e-4,           # increased learning rate for LoRA
-            per_device_train_batch_size=16,
-            per_device_eval_batch_size=16,
-            weight_decay=0.01,
-            save_total_limit=3,
-            num_train_epochs=4,
-            predict_with_generate=True,
-            bf16=True,
-            fp16=False,
-            push_to_hub=False,
-        )
-
-        trainer = Seq2SeqTrainer(
-            model=self.model,
-            args=training_args,
-            train_dataset=self.dataloader.process_dataset(self.dataloader.train),
-            eval_dataset=self.dataloader.process_dataset(self.dataloader.validation),
-            tokenizer=self.tokeniser,
-            data_collator=self.data_collator,
-            compute_metrics=self.dataloader.compute_rouge_scores,
-        )
-        return trainer
+    # In case i need them
+    def get_model(self):
+        return self.model
+    
+    def get_tokenizer(self):
+        return self.tokeniser
 
 
 class FLAN_T5_loRA(FLAN_T5):
@@ -59,34 +46,35 @@ class FLAN_T5_loRA(FLAN_T5):
         FLAN_T5 (_type_): _description_
     """
     def __init__(self, DataLoader, model_name="google/flan-t5-small"):
-        # Call parent constructor
-        super().__init__(DataLoader, model_name)
+        self.model_name = model_name
+        self.tokeniser = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
         # Apply LoRA configuration immediately after initialization
-        self.loRA_Config()
+        self._loRA_Config()
     
-    def loRA_Config(self):
+    def _loRA_Config(self, lora_r=16, lora_alpha=32, lora_dropout=0.1,
+                 target_modules=None):
         """Apply LoRA configuration to the model."""
+        
+        # Apply LoRA configuration
+        if target_modules is None:
+            # Default: All modules (most capacity, slower)
+            target_modules = ["q", "v", "k", "o", "wi", "wo"]
+        else: target_modules = ["q", "v"]
+        
         lora_config = LoraConfig(
-            r=16,    # increased rank for more capacity
-            lora_alpha=32,  # increased scaling factor
-            target_modules=["q", "v", "k", "o", "wi", "wo"],  # target more layers
-            lora_dropout=0.1,   # slightly increased dropout
+            r=lora_r,    # Make sure to increase the rank for more capacity
+            lora_alpha=lora_alpha,  # scaling factor
+            target_modules=target_modules,
+            lora_dropout=lora_dropout,   # dropout
             bias="none",
-            task_type="SEQ_2_SEQ_LM" # important for T5
+            # important for T5
+            task_type="SEQ_2_SEQ_LM" 
         )
 
         self.model = get_peft_model(self.model, lora_config)
         print(f"LoRA applied. Trainable parameters: {self.model.print_trainable_parameters()}")
-        return self.model
 
-
-class FLAN_T5_FULLFINETUNING(FLAN_T5):
-    """This class will be used to Fine Tune Flan-T5
-
-    Args:
-        FLAN_T5 (_type_): _description_
-    """
-    pass
 
 
 class FLAN_T5_SPECIAL(FLAN_T5):
