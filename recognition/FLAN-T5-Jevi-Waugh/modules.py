@@ -1,3 +1,5 @@
+# modules.py
+# Author: Jevi Waugh
 # Fine tuning procedure is in this file
 from transformers import AutoTokenizer
 import torch.nn as nn
@@ -86,66 +88,12 @@ class FLAN_T5_SPECIAL(FLAN_T5):
     pass
 
 
-class BioTrainer:
-    def __init__(self, model, tokenizer, train_dataset, eval_dataset, data_collator,
-                 learning_rate=5e-4, num_epochs=4, batch_size=16, 
-                 output_dir="./output", device=None, save_checkpoints=True):
-        
-        self.device = device if device else ('cuda' if torch.cuda.is_available() else 'cpu')
-        self.tokenizer = tokenizer
-        # in case training fails midway through epoch
-        self.save_checkpoints = save_checkpoints
-        self.output_dir = output_dir
-        self.num_epochs = num_epochs
-        
-        # need to control batch size for training time flexibiloty
-        self.batch_size = batch_size
-        self.model = model.to(self.device)
-        
-        import os
-        os.makedirs(output_dir, exist_ok=True)
-        if save_checkpoints: 
-            self.checkpoint_dir = os.path.join(output_dir, "checkpoints")
-            os.makedirs(self.checkpoint_dir, exist_ok=True)
-            
-        # Create dataloaders for both training and evaluationn sets
-        self.train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=data_collator)
-        self.eval_dataloader = DataLoader(eval_dataset, batch_size=batch_size, shuffle=False, collate_fn=data_collator)
-        # Setup optimizer, look if there is another pne better than adam for fine tuning
-        self.optimizer = AdamW(model.parameters(), lr=learning_rate, weight_decay=0.01)
-        
-        # Figure out how to set uop schedulaer later
-        
-        # rouge
-        self.rouge = evaluate.load("rouge")
-        
-        self.saved_history = {
-            'train_loss': [],
-            'eval_loss': [],
-            'rouge1': [],
-            'rouge2': [],
-            'rougeLsum': [],
-            'rougeL': [],
-            # Make sure that the generation length is consistent
-            'gen_len': []
-        }
-        
-    def train(self):
-        pass
-    
-    def save_model(self):
-        pass
-    
-    def _save_checpoint(self):
-        pass
-
-
 def main():
     model = FLAN_T5_loRA(BioDatasetLoader, model="google/flan-t5-base")
     trainer = model.dataloader.load_model()
-    trainer.train()
-    trainer.save_model("flan_t5_biolaysumm")
-    trainer.tokenizer.save_pretrained("flan_t5_biolaysumm")
+    # trainer.train()
+    # trainer.save_model("flan_t5_biolaysumm")
+    # trainer.tokenizer.save_pretrained("flan_t5_biolaysumm")
     
 if __name__ == "__main__": 
     main()
