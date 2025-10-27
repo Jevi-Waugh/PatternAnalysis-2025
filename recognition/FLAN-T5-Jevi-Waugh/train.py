@@ -13,16 +13,18 @@ from tqdm import tqdm
 from transformers import get_linear_schedule_with_warmup
 
 from dataset import BioDatasetLoader
-from modules import FLAN_T5_LoRA, FLAN_T5_FullFineTuning
-
+from modules import FLAN_T5_LoRA, FLAN_T5
+import logging
+import os
+logger = logging.getLogger(__name__)
 
 class BioTrainer:
-    def __init__(self, model, tokenizer, train_dataset, eval_dataset, data_collator,
+    def __init__(self, model, tokeniser, train_dataset, eval_dataset, data_collator,
                  learning_rate=5e-4, num_epochs=4, batch_size=16, 
                  output_dir="./output", device=None, save_checkpoints=True):
         
         self.device = device if device else ('cuda' if torch.cuda.is_available() else 'cpu')
-        self.tokenizer = tokenizer
+        self.tokeniser = tokeniser
         # in case training fails midway through epoch
         self.save_checkpoints = save_checkpoints
         self.output_dir = output_dir
@@ -32,7 +34,6 @@ class BioTrainer:
         self.batch_size = batch_size
         self.model = model.to(self.device)
         
-        import os
         os.makedirs(output_dir, exist_ok=True)
         if save_checkpoints: 
             self.checkpoint_dir = os.path.join(output_dir, "checkpoints")
@@ -49,6 +50,7 @@ class BioTrainer:
         # rouge
         self.rouge = evaluate.load("rouge")
         
+        # might need that to plot later
         self.saved_history = {
             'train_loss': [],
             'eval_loss': [],
@@ -63,8 +65,61 @@ class BioTrainer:
     def train(self):
         pass
     
-    def save_model(self):
-        pass
-    
-    def _save_checpoint(self):
-        pass
+    def save_model(self, saving_path=None):
+        """Saves the model and tokeniser 
+
+        Args:
+            saving_path (_type_, optional): Path to save the model. Defaults to None.
+        """
+        if saving_path is None: saving_path = os.path.join(self.output_dir, "final_model")
+        os.makedirs(saving_path, exist_ok=True)
+        self.model.save_pretrained(saving_path)
+        self.tokeniser.save_pretrained(saving_path)
+        logger.info(f"Model saved to: {saving_path}")
+        
+    def _save_history(self):
+        """Save training history and corresponding metrics used to evaluate the model.
+        """
+        h_path = os.path.join(self.output_dir, "training_history.json")
+        # Open file and dump all metrics
+        with open(h_path, 'w') as f:
+            json.dump(self.saved_history, f, indent=3)
+        logger.info(f"Training history has successfully been saved to: {h_path}")
+        
+    def _save_checkpoint(self, epoch, eval_results):
+        """This function will save the model checkpoints after each epoch.
+
+        Args:
+            epoch (_type_): Current epoch
+            eval_results (_type_): Evaluation results after that epoch
+        """
+        # Always making sure that the folder path is set up
+        checkpoint_path = os.path.join(self.checkpoint_dir, f"epoch-checkpoint-{epoch}")
+        os.makedirs(checkpoint_path, exist_ok=True)
+        
+        # Saving the tokeniser and modelr
+        self.model.save_pretrained(checkpoint_path)
+        self.tokeniser.save_pretrained(checkpoint_path)
+        
+        # Save checkpoint info
+        checkpoint_metrics = {
+            # training and eval loss
+            'train_loss': self.history['train_loss'][-1],
+            'eval_loss': eval_results['eval_loss'],
+            # ROUGE-1 is the overlap of unigram (single word) matches between the candidate and reference.
+            'rouge1': eval_results['rouge1'],
+            # ROUGE-L: is the longest common subsequence between the candidate and reference.
+            'rougeL': eval_results['rougeL'],
+            # ROUGE-2 is the overlap of bigram (two-word sequence) matches.
+            'rouge2': eval_results['rouge2'],
+            # ROUGE-Lsum is the sentence-level ROUGE-L averaged across the whole summary.
+            'rougeLsum': eval_results['rougeLsum'],
+            # gen_len is the average generation length token of the summary itself.
+            'gen_len': eval_results['gen_len'],
+            # current epoch
+            'epoch': epoch
+        }
+        
+        checkpoint_metrics_path = os.path.join(checkpoint_path, "checkpoint_metrics.json")
+        with open(checkpoint_metrics_path, 'w') as f: json.dump(checkpoint_metrics, f, indent=3)
+        logger.info(f" Checkpoint saved at: {checkpoint_path}")
