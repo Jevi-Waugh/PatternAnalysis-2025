@@ -1,5 +1,9 @@
 # predict.py - An example of the trained model
 # Author: Jevi Waugh
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+import torch
+from peft import PeftModel
+import logging
 
 
 class PredictSummary():
@@ -13,12 +17,27 @@ class PredictSummary():
             lora (bool, optional): If Lora is being used. Defaults to False.
             model (str, optional): Model type for e.g. small or base. Defaults to "google/flan-t5-small".
         """
-        import torch
+        logger = logging.getLogger(__name__)
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
         self.tokemiser = AutoTokenizer.from_pretrained(model_path)
-        from peft import PeftModel
         # Load lora byt loading the autoclass model and its correspondinf file path
-        if lora: self.model =  PeftModel.from_pretraind(AutoModelForSeq2SeqLM.from_pretrained(model), model_path)
+        if lora: self.model =  PeftModel.from_pretraind(self._load_model(model), model_path)
         # Otherwise just load the model withtout lora
-        else: self.model = AutoModelForSeq2SeqLM.from_pretrained(model)
+        else: self.model = self._load_model(model)
+        
+        # Transfer model to computer for compute
+        self.model.to(self.device)
+        logger.info(f"Model has been loaded from {model_path} using {self.device}")
+        
+        
+        
+    def _load_model(self, model) -> AutoModelForSeq2SeqLM:
+        return AutoModelForSeq2SeqLM.from_pretrained(model)
+    
+    
+    def plot() -> None:
+        pass
+    
+    def predict_summary() -> None:
+        pass
+    
