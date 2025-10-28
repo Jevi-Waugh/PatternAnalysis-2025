@@ -62,8 +62,6 @@ class BioTrainer:
             'gen_len': []
         }
         
-    def train(self):
-        pass
     
     def save_model(self, saving_path=None):
         """Saves the model and tokeniser 
@@ -123,3 +121,33 @@ class BioTrainer:
         checkpoint_metrics_path = os.path.join(checkpoint_path, "checkpoint_metrics.json")
         with open(checkpoint_metrics_path, 'w') as f: json.dump(checkpoint_metrics, f, indent=3)
         logger.info(f" Checkpoint saved at: {checkpoint_path}")
+        
+    def train_model(self):
+        """Main training loop for the model. This includes training phase, testing phase through
+           the evaluation set and saving the model as well as histories.
+        """
+        pass
+        
+    def _singular_loop(self):
+        """This will train for a only a singular epoch passing through teh entire dataset.
+        """
+        
+        class EpochTracker:
+            def __init__(self):
+                self.epoch_losses : list[float] = []
+                self.total: int = 0
+                
+            def add_loss(self, loss):
+                self.epoch_losses.append(loss)
+                self.total += loss
+                
+            def get_avg(self): 
+                return self.total / len(self.epoch_losses) is self.epoch_losses else 0
+        
+        self.model.train()
+        tracker = EpochTracker()
+        
+        
+    
+    def _backward_pass():
+        pass
