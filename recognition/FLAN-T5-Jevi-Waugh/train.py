@@ -42,8 +42,8 @@ class BioTrainer:
         # Create dataloaders for both training and evaluationn sets
         self.train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=data_collator)
         self.eval_dataloader = DataLoader(eval_dataset, batch_size=batch_size, shuffle=False, collate_fn=data_collator)
-        # Setup optimizer, look if there is another pne better than adam for fine tuning
-        self.optimizer = AdamW(model.parameters(), lr=learning_rate, weight_decay=0.01)
+        # Setup optimiser, look if there is another pne better than adam for fine tuning
+        self.optimiser = AdamW(model.parameters(), lr=learning_rate, weight_decay=0.01)
         
         # Figure out how to set uop schedulaer later
         
@@ -146,7 +146,28 @@ class BioTrainer:
         
         self.model.train()
         tracker = EpochTracker()
+        # get data ready
+        batch = {}
+        for b in self.train_dataloader:
+            for num, sample in b.items():
+                batch[num] = sample.to(self.device)
         
+        # got foward and backwards at the same time
+        with torch.cuda.amp.autocast(dtype=torch.float16):
+            result = self.model(batch)
+            loss = result.loss
+            
+        # get a scalar to backpropogate the gradients first
+        # ensure tyhat the computation graph will be reset afterwards
+        
+        scalar = ...
+        
+        # update and optimise
+        self.optimiser.zero_grad()
+        
+        
+        # keep tracking
+        tracker.add_loss(loss.item())
         
     
     def _backward_pass():
