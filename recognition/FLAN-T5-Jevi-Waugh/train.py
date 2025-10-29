@@ -148,21 +148,60 @@ class BioTrainer:
             #  Do evaluation
             self.model.eval()
             t_loss = 0
-            preds, labels = [],[]
+            preds, all_labels = [],[]
             progress_bar = tqdm(self.eval_dataloader, desc="Evaluation Phase")
             
             with torch.no_grad():
+                # get data ready
+                batch = {}
                 # loop through each batch
-                
-                # generate predictions
-                
-                # duse tokeiser to decode
-                
-                # compute rouge scores
+                for batch in progress_bar:
+                    for num, sample in batch.items():
+                        batch[num] = sample.to(self.device)
+                    # get loss
+                    with torch.cuda.amp.autocast(dtype=torch.float32):
+                        outputs = self.model(**batch)
+                    
+                    t_loss += outputs.loss.item()
+                    
+                    # generate predictions
+                    # look up param on huggingface
+                    tokens = self.model.generate()
+                    
+                    # use tokeiser to decode
+                    decoded_preds = self.tokeniser.batch_decode(tokens)
+                    
+                    # get labels
+                    labels = batch["labels"]
+                    # decode label
+                    decoded_labels = ...
+                    
+                    preds.extend(decoded_preds)
+                    all_labels.extend(decoded_labels)
+            # compute rouge scores
+            rouge_scores = self.rouge.compute(predictions=preds,references=all_labels,use_stemmer=True)            
+            # gen length - get the mean
+            each_pred = []
+            for pred in preds:
+                each_pred.append(pred.split())
+            avg_gen_length = np.mean(each_pred)
+            # in case i need to return it
+            eval_metrics = {
+                'eval_loss': t_loss / len(self.eval_dataloader),
+                'rouge1': rouge_scores['rouge1'],
+                'rouge2': rouge_scores['rouge2'],
+                'rougeLsum': rouge_scores['rougeLsum'],
+                'rougeL': rouge_scores['rougeL'],
+                'gen_len': avg_gen_length
+            }
             
-            
+            self.history['eval_loss'].append(eval_metrics['eval_loss'])
+            self.history['rouge1'].append(eval_metrics['rouge1'])
+            self.history['rouge2'].append(eval_metrics['rouge2'])
+            self.history['rougeLsum'].append(eval_metrics['rougeLsum'])
+            self.history['rougeL'].append(eval_metrics['rougeL'])
+            self.history['gen_len'].append(eval_metrics['gen_len'])
             # print results
-            
             
             # save checkpoints
             
@@ -203,8 +242,8 @@ class BioTrainer:
         tracker = EpochTracker()
         # get data ready
         batch = {}
-        for b in self.train_dataloader:
-            for num, sample in b.items():
+        for batch in progress_bar:
+            for num, sample in batch.items():
                 batch[num] = sample.to(self.device)
         
         # got foward and backwards at the same time
