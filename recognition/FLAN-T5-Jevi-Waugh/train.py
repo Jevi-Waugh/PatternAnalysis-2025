@@ -16,6 +16,8 @@ from dataset import BioDatasetLoader
 from modules import FLAN_T5_LoRA, FLAN_T5
 import logging
 import os
+# Configure logger for it to print
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class BioTrainer:
@@ -129,13 +131,34 @@ class BioTrainer:
            the evaluation set and saving the model as well as histories.
         """
         # check checkpoints first
+        if self.save_checkpoints: logger.info("The checkpoint will be saved at: {self.checkpoint_dir}")
         
         # loop through epochs
-        
+        for epoch in self.num_epochs:
+            symbol = "_"
+            mss = f"Epoch {epoch + 1}/{self.num_epochs}"
+            aesthetic_bar = 14 + len(mss)
+            logger.info(f"\n{symbol*aesthetic_bar}")
+            logger.info(mss)
+            logger.info(f"\n{symbol*aesthetic_bar}")
             #   get training loss
+            training_loss = self._singular_loop(epoch)
             
             
             #  Do evaluation
+            self.model.eval()
+            t_loss = 0
+            preds, labels = [],[]
+            progress_bar = tqdm(self.eval_dataloader, desc="Evaluation Phase")
+            
+            with torch.no_grad():
+                # loop through each batch
+                
+                # generate predictions
+                
+                # duse tokeiser to decode
+                
+                # compute rouge scores
             
             
             # print results
