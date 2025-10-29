@@ -45,8 +45,9 @@ class BioTrainer:
         # Setup optimiser, look if there is another pne better than adam for fine tuning
         self.optimiser = AdamW(model.parameters(), lr=learning_rate, weight_decay=0.01)
         
-        # Figure out how to set uop schedulaer later
-        
+        # Figure out how to set up scheduler
+        # Mixed precision scaler
+        self.scaler = torch.cuda.amp.GradScaler(cuda=True, enabled=True)
         # rouge
         self.rouge = evaluate.load("rouge")
         
@@ -160,7 +161,8 @@ class BioTrainer:
         # get a scalar to backpropogate the gradients first
         # ensure tyhat the computation graph will be reset afterwards
         
-        scalar = ...
+        self.scalar.scale(loss).backward()
+        self.scalar.step(self.optimiser)
         
         # update and optimise
         self.optimiser.zero_grad()
