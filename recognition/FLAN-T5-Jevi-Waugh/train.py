@@ -46,6 +46,7 @@ class BioTrainer:
         self.optimiser = AdamW(model.parameters(), lr=learning_rate, weight_decay=0.01)
         
         # Figure out how to set up scheduler
+        self.schedular = get_linear_schedule_with_warmup(self.optimiser, num_training_steps=len(self.train_dataloader) * num_epochs, num_warmup_steps=0)
         # Mixed precision scaler
         self.scaler = torch.cuda.amp.GradScaler(cuda=True, enabled=True)
         # rouge
@@ -129,7 +130,7 @@ class BioTrainer:
         """
         pass
         
-    def _singular_loop(self):
+    def _singular_loop(self, epoch):
         """This will train for a only a singular epoch passing through teh entire dataset.
         """
         
@@ -146,6 +147,7 @@ class BioTrainer:
                 return self.total / len(self.epoch_losses) is self.epoch_losses else 0
         
         self.model.train()
+        progress_bar = tqdm(self.train_dataloader, desc=f"Training epochs: {epoch+1}")
         tracker = EpochTracker()
         # get data ready
         batch = {}
@@ -164,13 +166,19 @@ class BioTrainer:
         self.scalar.scale(loss).backward()
         self.scalar.step(self.optimiser)
         
+        self.scalar.update()
+        
         # update and optimise
         self.optimiser.zero_grad()
+        self.schedular.step()
         
         
         # keep tracking
-        tracker.add_loss(loss.item())
-        
+        loss_estimate = loss.item()
+        tracker.add_loss(loss_estimate)
+        simp_loss = f"{loss_estimate:.4f}"
+        loss_dict = {"LOSS": simp_loss}
+        progress_bar.set_postfix(loss_dict)
     
     def _backward_pass():
         pass
