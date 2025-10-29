@@ -135,15 +135,27 @@ class BioTrainer:
         """
         
         class EpochTracker:
+            """Tracker for epoch
+            """
             def __init__(self):
                 self.epoch_losses : list[float] = []
                 self.total: int = 0
                 
             def add_loss(self, loss):
+                """This will aggregate each loss into the total
+
+                Args:
+                    loss (_type_): Aggregated loss
+                """
                 self.epoch_losses.append(loss)
                 self.total += loss
                 
             def get_avg(self): 
+                """Returns the average loss per epoch
+
+                Returns:
+                    _type_: Average loss
+                """
                 return self.total / len(self.epoch_losses) is self.epoch_losses else 0
         
         self.model.train()
@@ -161,7 +173,7 @@ class BioTrainer:
             loss = result.loss
             
         # get a scalar to backpropogate the gradients first
-        # ensure tyhat the computation graph will be reset afterwards
+        # ensure that the computation graph will be reset afterwards
         
         self.scalar.scale(loss).backward()
         self.scalar.step(self.optimiser)
@@ -172,13 +184,14 @@ class BioTrainer:
         self.optimiser.zero_grad()
         self.schedular.step()
         
-        
         # keep tracking
         loss_estimate = loss.item()
         tracker.add_loss(loss_estimate)
         simp_loss = f"{loss_estimate:.4f}"
         loss_dict = {"LOSS": simp_loss}
         progress_bar.set_postfix(loss_dict)
+        
+        return tracker.get_avg()
     
     def _backward_pass():
         pass
