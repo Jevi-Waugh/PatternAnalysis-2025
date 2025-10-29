@@ -124,11 +124,28 @@ class BioTrainer:
         with open(checkpoint_metrics_path, 'w') as f: json.dump(checkpoint_metrics, f, indent=3)
         logger.info(f" Checkpoint saved at: {checkpoint_path}")
         
-    def train_model(self):
+    def train_model(self) -> None:
         """Main training loop for the model. This includes training phase, testing phase through
            the evaluation set and saving the model as well as histories.
         """
-        pass
+        # check checkpoints first
+        
+        # loop through epochs
+        
+            #   get training loss
+            
+            
+            #  Do evaluation
+            
+            
+            # print results
+            
+            
+            # save checkpoints
+            
+        # save history and metrics
+        
+        # perhaps plot
         
     def _singular_loop(self, epoch):
         """This will train for a only a singular epoch passing through teh entire dataset.
@@ -172,7 +189,7 @@ class BioTrainer:
             result = self.model(batch)
             loss = result.loss
             
-        # get a scalar to backpropogate the gradients first
+        # get a scalar to backpropagate the gradients first
         # ensure that the computation graph will be reset afterwards
         
         self.scalar.scale(loss).backward()
@@ -192,6 +209,3 @@ class BioTrainer:
         progress_bar.set_postfix(loss_dict)
         
         return tracker.get_avg()
-    
-    def _backward_pass():
-        pass
