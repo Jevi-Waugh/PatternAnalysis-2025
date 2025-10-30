@@ -307,7 +307,7 @@ class BioTrainer:
                 Returns:
                     _type_: Average loss
                 """
-                return self.total / len(self.epoch_losses) is self.epoch_losses else 0
+                return self.total / len(self.epoch_losses) if self.epoch_losses else 0
         
         self.model.train()
         progress_bar = tqdm(self.train_dataloader, desc=f"Training epochs: {epoch+1}")
@@ -515,7 +515,7 @@ class ESTrainer():
             reward: ROUGE-1 score (used as fitness/reward)
         """
         # Add some noise
-        self.perturb_weights(seed, self.SIGMA, restore=False)
+        self.perturb_weights(self.SIGMA, False, seed)
         
         # Generate summaries on subset
         predictions, references = [], []
@@ -563,7 +563,7 @@ class ESTrainer():
         reward = rouge_scores['rouge1']
         
         # Restore original weights (subtract noise)
-        self.perturb_weights(seed, self.SIGMA, restore=True)
+        self.perturb_weights(self.SIGMA, True, seed)
         
         # Cleanup for optimisation
         del inputs, outputs, predictions, references
