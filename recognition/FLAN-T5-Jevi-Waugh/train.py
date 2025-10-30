@@ -215,7 +215,7 @@ class BioTrainer:
             
             # print results
             self.print_message(message=f"Epoch: {epoch + 1} outputs.")
-            print(f"  Training Loss:   {t_loss:.4f}")
+            print(f"  Training Loss:   {training_loss:.4f}")
             print(f"  Validation Loss: {eval_metrics['eval_loss']:.4f}")
             print(f"  ROUGE-1:         {eval_metrics['rouge1']:.4f}")
             print(f"  ROUGE-2:         {eval_metrics['rouge2']:.4f}")
