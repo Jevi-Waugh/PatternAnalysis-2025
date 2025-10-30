@@ -315,3 +315,51 @@ def _print_rouge_metrics(metrics: Dict[str: float],
     for k in keys:
         print(f"{k.upper()}: {metrics[k]:.4f}")
     
+def train_history_diff(lora_base_directory, fft_base_directory, output_path, num_epochs=3, chosen_epoch_diff=2, model_name="FLAN-T5-base"):
+    """Creates comparison plots through loaded checkpoint histories. This will also call plot_side_by_side_comparison().
+
+    Args:
+        lora_base_dir (_type_): Directory to LoRA checkpoints
+        fft_base_dir (_type_): Directory to Full-fine tuning
+        output_path (_type_): Path to save the comparison plot
+        num_epochs (int, optional): Number of epochs. Defaults to 3.
+        chosen_epoch_diff (int): Chosen epoch to view the diff (index starts at 0)
+    """
+    
+    try:
+        loRA_history = load_checkpoint_history(lora_base_directory, num_epochs=num_epochs)
+    except Exception as error:
+        logger.warning("Could not load checkpoint for LoRA: {error}")
+    
+    try:
+        Fft_history = load_checkpoint_history(fft_base_directory, num_epochs=num_epochs)
+    except Exception as error:
+        logger.warning("Could not load checkpoint for full fine tuning: {error}")
+        
+    plot_side_by_side_comparison(loRA_history, Fft_history, output_path)
+    
+    print(f"LoRA for {model_name} - Epoch {num_epochs}:")
+    print(f"Training Loss:   {loRA_history['train_loss'][chosen_epoch_diff]:.4f}")
+    print(f"Validation Loss: {loRA_history['eval_loss'][chosen_epoch_diff]:.4f}")
+    print(f"ROUGE-L:         {loRA_history['rougeL'][chosen_epoch_diff]:.4f}")
+    print(f"ROUGE-1:         {loRA_history['rouge1'][chosen_epoch_diff]:.4f}")
+    print(f"ROUGE-2:         {loRA_history['rouge2'][chosen_epoch_diff]:.4f}")
+    print(f"Gen Length:      {loRA_history['gen_len'][chosen_epoch_diff]:.2f}")
+    print("\n")
+    print(f"Full Fine-Tuning (FLAN-T5-base) - Epoch {num_epochs}:")
+    print(f"Training Loss:   {Fft_history['train_loss'][chosen_epoch_diff]:.4f}")
+    print(f"Validation Loss: {Fft_history['eval_loss'][chosen_epoch_diff]:.4f}")
+    print(f"ROUGE-L:         {Fft_history['rougeL'][chosen_epoch_diff]:.4f}")
+    print(f"ROUGE-1:         {Fft_history['rouge1'][chosen_epoch_diff]:.4f}")
+    print(f"ROUGE-2:         {Fft_history['rouge2'][chosen_epoch_diff]:.4f}")
+    print(f"Gen Length:      {Fft_history['gen_len'][chosen_epoch_diff]:.2f}")
+    print("\n")
+    print("Difference (LoRA - Full FT):")
+    print(f"Training Loss:   {loRA_history['train_loss'][chosen_epoch_diff]-Fft_history['train_loss'][chosen_epoch_diff]:+.4f}")
+    print(f"Validation Loss: {loRA_history['eval_loss'][chosen_epoch_diff]-Fft_history['eval_loss'][chosen_epoch_diff]:+.4f}")
+    print(f"ROUGE-L:         {loRA_history['rougeL'][chosen_epoch_diff]-Fft_history['rougeL'][chosen_epoch_diff]:+.4f}")
+    print(f"ROUGE-1:         {loRA_history['rouge1'][chosen_epoch_diff]-Fft_history['rouge1'][chosen_epoch_diff]:+.4f}")
+    print(f"ROUGE-2:         {loRA_history['rouge2'][chosen_epoch_diff]-Fft_history['rouge2'][chosen_epoch_diff]:+.4f}")
+    print("\n")
+    print(f"The path to the saved history for LoRA is: {lora_base_directory}")
+    print(f"The path to the saved history for Full-Fine Tuning is: {fft_base_directory}")
