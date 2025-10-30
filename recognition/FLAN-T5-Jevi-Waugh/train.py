@@ -141,7 +141,6 @@ class BioTrainer:
         """Main training loop for the model. This includes training phase, testing phase through
            the evaluation set and saving the model as well as histories.
         """
-        
         # check checkpoints first
         if self.save_checkpoints: logger.info("The checkpoint will be saved at: {self.checkpoint_dir}")
         
@@ -153,8 +152,7 @@ class BioTrainer:
             training_loss = self._singular_loop(epoch)
             self.history['train_loss'].append(training_loss)
             
-            
-            #  Do evaluation
+            #  Do evaluation and perhaps skip dropout
             self.model.eval()
             t_loss = 0
             preds, all_labels = [],[]
@@ -207,7 +205,7 @@ class BioTrainer:
                 'rougeL': rouge_scores['rougeL'],
                 'gen_len': avg_gen_length
             }
-            
+            # Save scores into history
             self.history['eval_loss'].append(eval_metrics['eval_loss'])
             self.history['rouge1'].append(eval_metrics['rouge1'])
             self.history['rouge2'].append(eval_metrics['rouge2'])
@@ -226,10 +224,10 @@ class BioTrainer:
             print(f"  Gen Length:      {eval_metrics['gen_len']:.2f}")
             
             # save checkpoints
+            if self.save_checkpoints: self._save_checkpoint(epoch + 1, eval_metrics)
             
         # save history and metrics
-        
-        # perhaps plot
+        self._save_history()
         
     def _singular_loop(self, epoch):
         """This will train for a only a singular epoch passing through teh entire dataset.
