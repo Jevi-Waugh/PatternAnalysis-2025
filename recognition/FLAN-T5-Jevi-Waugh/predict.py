@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 import numpy as np
 import os
 import json
+from evaluate import load
 class PredictSummary():
     
     def __init__(self, model_path, lora=False, model="google/flan-t5-small"):
@@ -268,5 +269,24 @@ def printing_comparison(original_report, generated_summ, reference_summ):
     print("Reference layman summary")
     print(reference_summ)
     
-    
-    
+def inference(summary_predictor: PredictSummary, testing_input, number=4):
+    """This will use the model and will show multiple predictions
+
+    Args:
+        summary_predictor (_type_): The predictor class
+        testing_input (_type_): Testing input
+        number (int, optional): Number of examples. Defaults to 4.
+    """
+    print(f"Inference on {number} examples")
+    for idx in range(number):
+        print(f"Test example {idx}")
+        sample = testing_input[idx]
+        original_report = sample["radiology_report"]
+        reference_summary = sample["layman_report"]
+        
+        # generate summary
+        gen_summary = summary_predictor.predict_summary(original_report)
+        
+        # show comparison
+        printing_comparison(original_report, gen_summary, reference_summary)
+        
