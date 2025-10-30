@@ -1,0 +1,28 @@
+# requirements.txt
+
+# Core dependencies
+torch
+transformers
+datasets
+evaluate
+numpy
+tqdm
+matplotlib
+
+# PEFT (Parameter-Efficient Fine-Tuning)
+peft
+
+# Local modules (ensure these exist in your repo because they get imported)
+# dataset.py
+# modules.py
+
+# Utility and system
+typing_extensions
+json
+os
+gc
+time
+logging
+
+# Optional one here
+accelerate
