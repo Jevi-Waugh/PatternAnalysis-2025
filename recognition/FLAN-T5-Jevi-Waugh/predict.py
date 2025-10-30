@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 class PredictSummary():
     
-    def __init__(self, model_path, lora=False, model="google/flan-t5-small"):
+    def __init__(self, model_path, lora=False, model="google/flan-t5-base"):
         """This will intialise and set up the predictor from the saved model to show predictions
             and plots.
 
@@ -27,15 +27,18 @@ class PredictSummary():
             model (str, optional): Model type for e.g. small or base. Defaults to "google/flan-t5-small".
         """
         
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.tokeniser = AutoTokenizer.from_pretrained(model_path)
-        # Load lora byt loading the autoclass model and its correspondinf file path
-        if lora: self.model =  PeftModel.from_pretraind(self._load_model(model), model_path)
-        # Otherwise just load the model withtout lora
-        else: self.model = self._load_model(model)
         
-        # Transfer model to computer for compute
-        self.model.to(self.device)
+        if lora:
+            # Load base model and LoRA adapter
+            base = AutoModelForSeq2SeqLM.from_pretrained(model)
+            self.model = PeftModel.from_pretrained(base, model_path)
+        else:
+            # Load full fine-tuned model
+            self.model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
+
+
         logger.info(f"Model has been loaded from {model_path} using {self.device}")
         self.model.eval()
         print(f"Model loaded from: {model_path}")
@@ -311,7 +314,7 @@ def rouge_score(summary_predictor: PredictSummary, testing_data, num_samples=80)
     # print all metrics
     _print_rouge_metrics(outputs)
     
-def _print_rouge_metrics(metrics: Dict[str: float], 
+def _print_rouge_metrics(metrics: Dict[str, float], 
                         metric: Literal["rouge1", "rouge2", "rougeL", "rougeLsum", "all"]="rouge1") -> None:
     
     keys = metric.keys() if metric["all"] else [metric]
@@ -422,9 +425,9 @@ def main():
         # Load predictor
         predictor = PredictSummary(
             model_path=args.model_path,
-            is_lora=args.is_lora
+            lora=args.is_lora
         )
-        
+        print("="*10)
         # Demonstrate predictions
         inference(predictor, test_data, num_examples=args.num_examples)
         
