@@ -12,6 +12,8 @@ import os
 import json
 from evaluate import load
 from typing_extensions import Dict, Literal
+import argparse
+from dataset import BioDatasetLoader
 class PredictSummary():
     
     def __init__(self, model_path, lora=False, model="google/flan-t5-small"):
@@ -39,7 +41,7 @@ class PredictSummary():
         print(f"Using device: {self.device}")
         
         
-    def _load_model(self, model) -> AutoModelForSeq2SeqLM:
+    def _load_model(self, model: str) -> AutoModelForSeq2SeqLM:
         return AutoModelForSeq2SeqLM.from_pretrained(model)
     
     def predict_summary(self, text, max_length=256, num_beams=4, temperature=1.0):
@@ -363,3 +365,74 @@ def train_history_diff(lora_base_directory, fft_base_directory, output_path, num
     print("\n")
     print(f"The path to the saved history for LoRA is: {lora_base_directory}")
     print(f"The path to the saved history for Full-Fine Tuning is: {fft_base_directory}")
+    
+
+def main():
+    """Main script with command line arguments."""
+    
+    parser = argparse.ArgumentParser(description='Test trained summarisation model.')
+    # Model path
+    parser.add_argument('--model_path', type=str,
+                       help='The path to trained model for predictions')
+    # ROUGE
+    parser.add_argument('--calculate_rouge', action='store_true',
+                       help='Calculate ROUGE scores on test dataset')
+    # LoRA
+    parser.add_argument('--is_lora', action='store_true',
+                       help='If model is a LoRA adapter')
+    # Comparison
+    parser.add_argument('--compare_training', action='store_true',
+                       help='Compare Full Fine-Tuning and  LoRA training histories')
+    # LoRA Dir
+    parser.add_argument('--lora_dir', type=str,
+                       help='Base directory for LoRA checkpoints')
+    # FFT Dir
+    parser.add_argument('--fft_dir', type=str,
+                       help='Base directory for Full Fine-Tuning checkpoints')
+    # Output Path
+    parser.add_argument('--output_plot', type=str, default='./comparison_plot.png',
+                       help='Path to save comparison plot')
+    # EPOCHS
+    parser.add_argument('--num_epochs', type=int, default=3,
+                       help='Number of epochs to analyse')
+    # EPOCH EXAMPLES
+    parser.add_argument('--num_examples', type=int, default=3,
+                       help='Number of examples to show')
+    
+    args = parser.parse_args()
+    
+    # Compare training histories if requested
+    if args.compare_training:
+        if not args.lora_dir or not args.fft_dir:
+            print("Error: --lora_dir and --fft_dir are required to compare for training")
+            return
+        
+        train_history_diff(lora_base_dir=args.lora_dir,  fft_base_dir=args.fft_dir, output_path=args.output_plot, num_epochs=args.num_epochs)
+    
+    # Run predictions if the model_path has beenprovided
+    if args.model_path:
+        # Load test data
+        print("Loading test dataset")
+        dataloader = BioDatasetLoader()
+        dataloader.load_dataset(splits=("test",))
+        test_data = dataloader.test
+        
+        print(f"Test dataset size: {len(test_data)}")
+        
+        # Load predictor
+        predictor = PredictSummary(
+            model_path=args.model_path,
+            is_lora=args.is_lora
+        )
+        
+        # Demonstrate predictions
+        inference(predictor, test_data, num_examples=args.num_examples)
+        
+        # Calculate ROUGE if needed
+        if args.calculate_rouge:
+            rouge_score(predictor, test_data, num_samples=100)
+        
+        print("Demonstration for predictions have been shown.")
+
+if __name__ == "__main__":
+    main()
