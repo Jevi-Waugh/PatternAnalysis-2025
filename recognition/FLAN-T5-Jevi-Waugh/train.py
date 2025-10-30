@@ -63,7 +63,7 @@ class BioTrainer:
         self.rouge = evaluate.load("rouge")
         
         # might need that to plot later
-        self.saved_history = {
+        self.history = {
             'train_loss': [],
             'eval_loss': [],
             'rouge1': [],
@@ -787,7 +787,7 @@ def main(use_lora=True, learning_rate=None, base_output_dir="/FLAN-T5-Jevi-Waugh
     print("Training completed!")
     print(f"Results are saved in: {output_dir}")
     
-    return trainer, trainer.saved_history
+    return trainer, trainer.history
 
 
 if __name__ == "__main__":
