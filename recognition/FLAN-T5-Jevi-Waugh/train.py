@@ -330,3 +330,12 @@ class ESTrainer():
         print(f"The Model has been loaded on {self.device}")
         print(f"Total parameters: {sum(p.numel() for p in self.model.parameters()):,}")
         print(f"Output directory: {output_directory}")
+
+    def _save_history(self):
+        """Save training history and corresponding metrics used to evaluate the model.
+        """
+        h_path = os.path.join(self.output_directory, "training_history.json")
+        # Open file and dump all metrics
+        with open(h_path, 'w') as f:
+            json.dump(self.saved_history, f, indent=3)
+        logger.info(f"Training history has successfully been saved to: {h_path}")
