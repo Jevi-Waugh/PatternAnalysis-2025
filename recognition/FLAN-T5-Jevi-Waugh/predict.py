@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 import numpy as np
+import os
+import json
 class PredictSummary():
     
     def __init__(self, model_path, lora=False, model="google/flan-t5-small"):
@@ -111,8 +113,49 @@ class PredictSummary():
     
     
     
-def load_checkpoint():
-    pass
+def load_checkpoint_history(base_directory, num_epochs=3):
+    """
+    Load training history from a checkpoint JSON files.
+    
+    Args:
+        base_dir: Base directory containing checkpoints folder
+        num_epochs: Number of epochs to load (default: 3)
+    
+    Returns:
+        Dictionary with history for all metrics
+    """
+    history = {
+        'train_loss': [],
+        'eval_loss': [],
+        'rouge1': [],
+        'rougeL': [],
+        'rouge2': [],
+        'rougeLsum': [],
+        'gen_len': []
+    }
+    
+    checkpoint_dir = os.path.join(base_directory, "checkpoints")
+    
+    for epoch in range(1, num_epochs + 1):
+        checkpoint_p = os.path.join(checkpoint_dir, f"checkpoint-epoch-{epoch}", "checkpoint_info.json")
+        
+        try:
+            with open(checkpoint_p, 'r') as f: checkpoint_results = json.load(f)
+            
+            history['train_loss'].append(checkpoint_results['train_loss'])
+            history['eval_loss'].append(checkpoint_results['eval_loss'])
+            history['rouge1'].append(checkpoint_results['rouge1'])
+            history['rouge2'].append(checkpoint_results['rouge2'])
+            history['rougeL'].append(checkpoint_results['rougeL'])
+            history['rougeLsum'].append(checkpoint_results['rougeLsum'])
+            history['gen_len'].append(checkpoint_results['gen_len'])
+            
+            print(f" Currently loading Epoch {epoch}")
+        except FileNotFoundError:
+            print(f"Checpoint not found for epoch {epoch}")
+            return None
+    
+    return history
 
 
 def plot_side_by_side_comparison(lora_history, fft_history, output_path):
@@ -213,3 +256,7 @@ def plot_side_by_side_comparison(lora_history, fft_history, output_path):
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"The Plot has been saved to: {output_path}")
     plt.close()
+    
+    
+    
+    
