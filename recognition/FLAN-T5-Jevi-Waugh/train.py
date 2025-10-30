@@ -184,9 +184,9 @@ class BioTrainer:
                     # get labels
                     labels = batch["labels"]
                     # decode label
-                    pad_tok = self.tokenizer.pad_token_id
+                    pad_tok = self.tokeniser.pad_token_id
                     labels = torch.where(labels != -100, labels, pad_tok)
-                    decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
+                    decoded_labels = self.tokeniser.batch_decode(labels, skip_special_tokens=True)
                     
                     preds.extend(decoded_preds)
                     all_labels.extend(decoded_labels)
@@ -305,7 +305,7 @@ class ESTrainer():
             torch_dtype=torch.float32
         ).to(self.device)
         
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokeniser = AutoTokenizer.from_pretrained(model_name)
         # Disabling dropout for deterministic evaluation
         self.model.eval()  
         
@@ -339,3 +339,31 @@ class ESTrainer():
         with open(h_path, 'w') as f:
             json.dump(self.saved_history, f, indent=3)
         logger.info(f"Training history has successfully been saved to: {h_path}")
+        
+    
+    def save_checkpoint(self, iteration):
+        """Save model checkpoint and training info"""
+        checkpoint_dir = os.path.join(
+            self.output_directory, 
+            "checkpoints", 
+            f"checkpoint-iteration-{iteration}"
+        )
+        os.makedirs(checkpoint_dir, exist_ok=True)
+        
+        # Save model and tokeiser
+        self.model.save_pretrained(checkpoint_dir)
+        self.tokeniser.save_pretrained(checkpoint_dir)
+        
+        # Save checkpoint info
+        checkpoint_info = {
+            'iteration': iteration,
+            'mean_reward': self.history['mean_reward'][-1],
+            'max_reward': self.history['max_reward'][-1],
+            'min_reward': self.history['min_reward'][-1],
+            'std_reward': self.history['std_reward'][-1]
+        }
+        
+        with open(os.path.join(checkpoint_dir, "checkpoint_info.json"), 'w') as f:
+            json.dump(checkpoint_info, f, indent=2)
+        
+        print(f"Checkpoint saved at: {checkpoint_dir}")
