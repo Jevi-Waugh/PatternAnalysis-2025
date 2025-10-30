@@ -4,8 +4,10 @@ from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
 from peft import PeftModel
 import logging
-
-
+import matplotlib.pyplot as plt
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+import numpy as np
 class PredictSummary():
     
     def __init__(self, model_path, lora=False, model="google/flan-t5-small"):
@@ -17,7 +19,7 @@ class PredictSummary():
             lora (bool, optional): If Lora is being used. Defaults to False.
             model (str, optional): Model type for e.g. small or base. Defaults to "google/flan-t5-small".
         """
-        logger = logging.getLogger(__name__)
+        
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.tokeniser = AutoTokenizer.from_pretrained(model_path)
         # Load lora byt loading the autoclass model and its correspondinf file path
@@ -109,11 +111,105 @@ class PredictSummary():
     
     
     
-    
-    
 def load_checkpoint():
     pass
 
 
-def plot() -> None:
-    pass
+def plot_side_by_side_comparison(lora_history, fft_history, output_path):
+    """
+    Create 2x4 grid: 4 plots for LoRA, 4 plots for Full FT (3 epochs each).
+    
+    Args:
+        lora_history: Dictionary with LoRA training history
+        fft_history: Dictionary with Full Fine-Tuning training history
+        output_path: Path to save the comparison plot
+    """
+    epochs = [1, 2, 3]
+    
+    # Create a figure with 2 rows (LoRA, FFT) and 4 columns (4 plot types)
+    fig, axes = plt.subplots(2, 4, figsize=(24, 12))
+    # TOP ROW: LoRA (FLAN-T5-base)
+    # LoRA Plot 1: Loss curves
+    axes[0, 0].plot(epochs, lora_history['train_loss'], 'b-o', label='Training Loss', linewidth=2.5, markersize=9)
+    axes[0, 0].plot(epochs, lora_history['eval_loss'], 'r-o', label='Validation Loss', linewidth=2.5, markersize=9)
+    axes[0, 0].set_xlabel('Epoch', fontsize=12, fontweight='bold')
+    axes[0, 0].set_ylabel('Loss', fontsize=12, fontweight='bold')
+    axes[0, 0].set_title('Training and Validation Loss\n(LoRA - FLAN-T5-base)', fontsize=13, fontweight='bold', pad=12)
+    axes[0, 0].legend(fontsize=10)
+    axes[0, 0].grid(True, alpha=0.3)
+    axes[0, 0].set_xticks(epochs)
+    
+    # LoRA Plot 2: ROUGE scores
+    axes[0, 1].plot(epochs, lora_history['rouge1'], 'g-o', label='ROUGE-1', linewidth=2.5, markersize=9)
+    axes[0, 1].plot(epochs, lora_history['rouge2'], 'b-o', label='ROUGE-2', linewidth=2.5, markersize=9)
+    axes[0, 1].plot(epochs, lora_history['rougeL'], 'r-o', label='ROUGE-L', linewidth=2.5, markersize=9)
+    axes[0, 1].set_xlabel('Epoch', fontsize=12, fontweight='bold')
+    axes[0, 1].set_ylabel('ROUGE Score', fontsize=12, fontweight='bold')
+    axes[0, 1].set_title('ROUGE Scores Over Training\n(LoRA - FLAN-T5-base)', fontsize=13, fontweight='bold', pad=12)
+    axes[0, 1].legend(fontsize=10)
+    axes[0, 1].grid(True, alpha=0.3)
+    axes[0, 1].set_xticks(epochs)
+    
+    # LoRA Plot 3: Validation/Evaluation Loss 
+    axes[0, 2].plot(epochs, lora_history['eval_loss'], 'r-o', label='Validation Loss', linewidth=2.5, markersize=9)
+    axes[0, 2].set_xlabel('Epoch', fontsize=12, fontweight='bold')
+    axes[0, 2].set_ylabel('Loss', fontsize=12, fontweight='bold')
+    axes[0, 2].set_title('Validation Loss (Detail)\n(LoRA - FLAN-T5-base)', fontsize=13, fontweight='bold', pad=12)
+    axes[0, 2].legend(fontsize=10)
+    axes[0, 2].grid(True, alpha=0.3)
+    axes[0, 2].set_xticks(epochs)
+    
+    # LoRA Plot 4: Generation length
+    axes[0, 3].plot(epochs, lora_history['gen_len'], 'm-o', label='Avg Gen Length', linewidth=2.5, markersize=9)
+    axes[0, 3].set_xlabel('Epoch', fontsize=12, fontweight='bold')
+    axes[0, 3].set_ylabel('Tokens', fontsize=12, fontweight='bold')
+    axes[0, 3].set_title('Average Generation Length\n(LoRA - FLAN-T5-base)', fontsize=13, fontweight='bold', pad=12)
+    axes[0, 3].legend(fontsize=10)
+    axes[0, 3].grid(True, alpha=0.3)
+    axes[0, 3].set_xticks(epochs)
+    
+
+    # BOTTOM ROW: Full Fine-Tuning (FLAN-T5-base)
+    # FFT Plot 1: Loss curves
+    axes[1, 0].plot(epochs, fft_history['train_loss'], 'b-o', label='Training Loss', linewidth=2.5, markersize=9)
+    axes[1, 0].plot(epochs, fft_history['eval_loss'], 'r-o', label='Validation Loss', linewidth=2.5, markersize=9)
+    axes[1, 0].set_xlabel('Epoch', fontsize=12, fontweight='bold')
+    axes[1, 0].set_ylabel('Loss', fontsize=12, fontweight='bold')
+    axes[1, 0].set_title('Training and Validation Loss\n(Full FT - FLAN-T5-base)', fontsize=13, fontweight='bold', pad=12)
+    axes[1, 0].legend(fontsize=10)
+    axes[1, 0].grid(True, alpha=0.3)
+    axes[1, 0].set_xticks(epochs)
+    
+    # FFT Plot 2: ROUGE scores
+    axes[1, 1].plot(epochs, fft_history['rouge1'], 'g-o', label='ROUGE-1', linewidth=2.5, markersize=9)
+    axes[1, 1].plot(epochs, fft_history['rouge2'], 'b-o', label='ROUGE-2', linewidth=2.5, markersize=9)
+    axes[1, 1].plot(epochs, fft_history['rougeL'], 'r-o', label='ROUGE-L', linewidth=2.5, markersize=9)
+    axes[1, 1].set_xlabel('Epoch', fontsize=12, fontweight='bold')
+    axes[1, 1].set_ylabel('ROUGE Score', fontsize=12, fontweight='bold')
+    axes[1, 1].set_title('ROUGE Scores Over Training\n(Full FT - FLAN-T5-base)', fontsize=13, fontweight='bold', pad=12)
+    axes[1, 1].legend(fontsize=10)
+    axes[1, 1].grid(True, alpha=0.3)
+    axes[1, 1].set_xticks(epochs)
+    
+    # FFT Plot 3: Validation/Evaluation  Loss zoomed
+    axes[1, 2].plot(epochs, fft_history['eval_loss'], 'r-o', label='Validation Loss', linewidth=2.5, markersize=9)
+    axes[1, 2].set_xlabel('Epoch', fontsize=12, fontweight='bold')
+    axes[1, 2].set_ylabel('Loss', fontsize=12, fontweight='bold')
+    axes[1, 2].set_title('Validation Loss (Detail)\n(Full FT - FLAN-T5-base)', fontsize=13, fontweight='bold', pad=12)
+    axes[1, 2].legend(fontsize=10)
+    axes[1, 2].grid(True, alpha=0.3)
+    axes[1, 2].set_xticks(epochs)
+    
+    # FFT Plot 4: Generation length
+    axes[1, 3].plot(epochs, fft_history['gen_len'], 'm-o', label='Avg Gen Length', linewidth=2.5, markersize=9)
+    axes[1, 3].set_xlabel('Epoch', fontsize=12, fontweight='bold')
+    axes[1, 3].set_ylabel('Tokens', fontsize=12, fontweight='bold')
+    axes[1, 3].set_title('Average Generation Length\n(Full FT - FLAN-T5-base)', fontsize=13, fontweight='bold', pad=12)
+    axes[1, 3].legend(fontsize=10)
+    axes[1, 3].grid(True, alpha=0.3)
+    axes[1, 3].set_xticks(epochs)
+    
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"The Plot has been saved to: {output_path}")
+    plt.close()
