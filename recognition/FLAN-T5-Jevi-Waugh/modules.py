@@ -11,6 +11,9 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim import AdamW
 import evaluate
+import os
+
+
 class FLAN_T5:
     def __init__(self, DataLoader, model_name="google/flan-t5-small"):
         self.dataloader = DataLoader()
@@ -47,7 +50,7 @@ class FLAN_T5_loRA(FLAN_T5):
     Args:
         FLAN_T5 (_type_): _description_
     """
-    def __init__(self, DataLoader, model_name="google/flan-t5-small"):
+    def __init__(self, model_name="google/flan-t5-small"):
         self.model_name = model_name
         self.tokeniser = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
@@ -76,24 +79,3 @@ class FLAN_T5_loRA(FLAN_T5):
 
         self.model = get_peft_model(self.model, lora_config)
         print(f"LoRA applied. Trainable parameters: {self.model.print_trainable_parameters()}")
-
-
-
-class FLAN_T5_SPECIAL(FLAN_T5):
-    """This is a special strategy that I will reveal once it works.
-
-    Args:
-        FLAN_T5 (_type_): _description_
-    """
-    pass
-
-
-def main():
-    model = FLAN_T5_loRA(BioDatasetLoader, model="google/flan-t5-base")
-    trainer = model.dataloader.load_model()
-    # trainer.train()
-    # trainer.save_model("flan_t5_biolaysumm")
-    # trainer.tokenizer.save_pretrained("flan_t5_biolaysumm")
-    
-if __name__ == "__main__": 
-    main()
