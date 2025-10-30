@@ -19,7 +19,7 @@ class PredictSummary():
         """
         logger = logging.getLogger(__name__)
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.tokemiser = AutoTokenizer.from_pretrained(model_path)
+        self.tokeniser = AutoTokenizer.from_pretrained(model_path)
         # Load lora byt loading the autoclass model and its correspondinf file path
         if lora: self.model =  PeftModel.from_pretraind(self._load_model(model), model_path)
         # Otherwise just load the model withtout lora
@@ -47,7 +47,7 @@ class PredictSummary():
             temperature (float, optional): Sampling temperature. Defaults to 1.0.
         
         Returns:
-            Generated summary text
+            Generated layman text
             
         """
         # Prepare input with task prefix
@@ -55,7 +55,7 @@ class PredictSummary():
         input_t = prefix + text
         
         # Tokenise
-        inputs = self.tokenizer(input_t, max_length=512, truncation=True,
+        inputs = self.tokeniser(input_t, max_length=512, truncation=True,
                                 padding="max_length", return_tensors="pt").to(self.device)
         # Generate
         with torch.no_grad():
@@ -69,8 +69,41 @@ class PredictSummary():
             )
         
         # Decode
-        summary = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        summary = self.tokeniser.decode(outputs[0], skip_special_tokens=True)
         return summary
+    
+    def predict_batch_summaries(self, texts, max_length=256, num_beams=4, batch_size=8):
+        """
+        This will enerate summaries for multiple texts.
+        
+        Args:
+            texts: List of input radiology reports
+            max_length: Maximum length of generated summaries
+            num_beams: Number of beams for beam search
+            batch_size: Batch size for processing
+            
+        Returns:
+            List of generated summaries
+        """
+        summaries = []
+        
+        for i in range(0, len(texts), batch_size):
+            batch_texts = texts[i:i+batch_size]
+            
+            # Prepare inputs
+            prefix = "Create a lay summary of this radiology report for a general audience:: "
+            input_texts = [prefix + text for text in batch_texts]
+            
+            inputs = self.tokeniser(input_texts, max_length=512,truncation=True, padding="max_length", return_tensors="pt").to(self.device)
+            
+            # Generate and decode
+            with torch.no_grad():
+                results = self.model.generate(input_ids=inputs["input_ids"], attention_mask=inputs["attention_mask"],  
+                                              max_length=max_length, num_beams=num_beams, early_stopping=True)
+            batch_summaries = self.tokeniser.batch_decode(results, skip_special_tokens=True)
+            summaries.extend(batch_summaries)
+        
+        return summaries
         
     
     
