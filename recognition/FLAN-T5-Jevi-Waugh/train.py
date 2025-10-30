@@ -170,7 +170,7 @@ class BioTrainer:
                         # Transfer to device - GPU
                         batch[num] = sample.to(self.device)
                     # get loss
-                    with torch.cuda.amp.autocast("cuda", dtype=torch.float32):
+                    with torch.cuda.amp.autocast("cuda", dtype=torch.bfloat16):
                         outputs = self.model(**batch)
                     
                     t_loss += outputs.loss.item()
@@ -319,7 +319,7 @@ class BioTrainer:
                 batch[num] = sample.to(self.device)
         
         # got foward and backwards at the same time
-        with torch.cuda.amp.autocast(dtype=torch.float16):
+        with torch.cuda.amp.autocast(dtype=torch.bfloat16):
             result = self.model(batch)
             loss = result.loss
             
@@ -353,7 +353,7 @@ class ESTrainer():
         # Load model and tokenizer
         self.model = AutoModelForSeq2SeqLM.from_pretrained(
             model_name,
-            torch_dtype=torch.float32
+            torch_dtype=torch.bfloat16
         ).to(self.device)
         
         self.tokeniser = AutoTokenizer.from_pretrained(model_name)
@@ -541,7 +541,7 @@ class ESTrainer():
             ).to(self.device)
             
             # Generate
-            with torch.no_grad(), torch.cuda.amp.autocast("cuda", dtype=torch.bfloat32):
+            with torch.no_grad(), torch.cuda.amp.autocast("cuda", dtype=torch.bfloat16):
                 outputs = self.model.generate(
                     **inputs,
                     max_length=256,
