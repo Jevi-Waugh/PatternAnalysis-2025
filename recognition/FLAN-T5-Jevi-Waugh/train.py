@@ -453,3 +453,71 @@ class ESTrainer():
             del update
             
         torch.cuda.empty_cache()
+        
+    
+    def evaluate_population_member(self, val_data, seed, val_samples):
+        """
+        Evaluate a single perturbed model on validation set.
+        
+        Returns:
+            reward: ROUGE-1 score (used as fitness/reward)
+        """
+        # Add some noise
+        self.perturb_weights(seed, self.SIGMA, restore=False)
+        
+        # Generate summaries on subset
+        predictions, references = [], []
+        
+        # Use subset for faster evaluation
+        eval_indices = np.random.choice(len(val_data), 
+                                       min(val_samples, len(val_data)), 
+                                       replace=False)
+        
+        for idx in eval_indices:
+            sample = val_data[int(idx)]
+            
+            # Prepare input
+            prefix = "Create a lay summary of this radiology report for a general audience:: "
+            input_text = prefix + sample['radiology_report']
+            
+            # set up tokeniser
+            inputs = self.tokeniser(
+                input_text,
+                return_tensors="pt",
+                max_length=512,
+                truncation=True
+            ).to(self.device)
+            
+            # Generate
+            with torch.no_grad(), torch.cuda.amp.autocast("cuda", dtype=torch.bfloat32):
+                outputs = self.model.generate(
+                    **inputs,
+                    max_length=256,
+                    num_beams=1,  # Greedy decoding for ES (deterministic)
+                )
+            
+            pred = self.tokeniser.decode(outputs[0], skip_special_tokens=True)
+            predictions.append(pred)
+            references.append(sample['layman_report'])
+        
+        # Compute ROUGE scores
+        rouge_scores = self.rouge.compute(
+            predictions=predictions,
+            references=references,
+            use_stemmer=True
+        )
+        
+        # Use ROUGE-1 as reward (primary metric we care about)
+        reward = rouge_scores['rouge1']
+        
+        # Restore original weights (subtract noise)
+        self.perturb_weights(seed, self.SIGMA, restore=True)
+        
+        # Cleanup for optimisation
+        del inputs, outputs, predictions, references
+        torch.cuda.empty_cache()
+        
+        return reward
+    
+    
+    
