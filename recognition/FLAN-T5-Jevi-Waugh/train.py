@@ -726,7 +726,7 @@ def main(use_lora=True, learning_rate=None, base_output_dir="/FLAN-T5-Jevi-Waugh
     print("Loading tokeniser...")
     dataloader._load_tokeniser("google/flan-t5-base")
     
-    # 3. Setup data collator
+    # Setup data collator
     print("Setting up data collator")
     dataloader._padding()
     
@@ -762,7 +762,7 @@ def main(use_lora=True, learning_rate=None, base_output_dir="/FLAN-T5-Jevi-Waugh
     print(f"Learning rate: {lr}")
     print(f"Output directory: {output_dir}")
     
-    # 6. Create trainer
+    # Create trainer
     print("\n6. Creating trainer...")
     trainer = BioTrainer(
         model=model_wrapper.get_model(),
@@ -778,7 +778,7 @@ def main(use_lora=True, learning_rate=None, base_output_dir="/FLAN-T5-Jevi-Waugh
         save_checkpoints=True  
     )
     
-    # 7. Train and Save model
+    # Train and Save model
     print("Starting training")
     history = trainer.train_model()
     print("Saving final model")
@@ -788,7 +788,6 @@ def main(use_lora=True, learning_rate=None, base_output_dir="/FLAN-T5-Jevi-Waugh
     print(f"Results are saved in: {output_dir}")
     
     return trainer, trainer.history
-
 
 if __name__ == "__main__":
     main()
