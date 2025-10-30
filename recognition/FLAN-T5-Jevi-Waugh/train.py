@@ -330,6 +330,14 @@ class ESTrainer():
         print(f"The Model has been loaded on {self.device}")
         print(f"Total parameters: {sum(p.numel() for p in self.model.parameters()):,}")
         print(f"Output directory: {output_directory}")
+        
+        # ES Hyperparameters (from paper - Table 1)
+        # Defined such param for short compute
+        self.POPULATION_SIZE = 10  # This is the Number of perturbed models per ITERATION
+        self.SIGMA = 0.001         # Noise scale (standard deviation)
+        self.ALPHA = 0.0005        # Learning rate
+        self.NUM_ITERATIONS = 15   # Number of ES iterations
+        self.VAL_SAMPLES = 30      # Subset of validation set for evaluation
 
     def _save_history(self):
         """Save training history and corresponding metrics used to evaluate the model.
@@ -406,4 +414,42 @@ class ESTrainer():
             torch.cuda.synchronize()
             torch.cuda.empty_cache()
             
-    
+    def es_update(self, seeds, rewards):
+        """
+        Apply ES update: aggregate perturbations weighted by normalised rewards.
+        
+        This implements the core ES algorithm from the paper (Algorithm 2).
+        """
+        # Normalize rewards (z-score)
+        rewards = np.array(rewards)
+        rewards_norm = (rewards - rewards.mean()) / (rewards.std() + 1e-8)
+        
+        # Aggregate weighted perturbations
+        for param in self.model.parameters():
+            if not param.requires_grad:
+                continue
+            
+            update = torch.zeros_like(param)
+            
+            # Generate noise
+            for seed, reward_norm in zip(seeds, rewards_norm):
+                gen = torch.Generator(device=param.device)
+                gen.manual_seed(int(seed))
+                
+                noise = torch.randn(
+                    param.shape,
+                    dtype=param.dtype,
+                    device=param.device,
+                    generator=gen
+                )
+                
+                update.add_(reward_norm * noise)
+                del noise
+            
+            # According to the paper, we
+            # Update lth layer’s parameters in-place as 
+            # θ ← θ + α * (1/N) * Σ(R_normalized * ε)
+            param.data.add_((self.ALPHA / self.POPULATION_SIZE) * update)
+            del update
+            
+        torch.cuda.empty_cache()
