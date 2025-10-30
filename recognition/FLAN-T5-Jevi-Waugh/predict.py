@@ -5,8 +5,6 @@ import torch
 from peft import PeftModel
 import logging
 import matplotlib.pyplot as plt
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 import numpy as np
 import os
 import json
@@ -14,6 +12,9 @@ from evaluate import load
 from typing_extensions import Dict, Literal
 import argparse
 from dataset import BioDatasetLoader
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 class PredictSummary():
     
     def __init__(self, model_path, lora=False, model="google/flan-t5-small"):
@@ -39,7 +40,6 @@ class PredictSummary():
         self.model.eval()
         print(f"Model loaded from: {model_path}")
         print(f"Using device: {self.device}")
-        
         
     def _load_model(self, model: str) -> AutoModelForSeq2SeqLM:
         return AutoModelForSeq2SeqLM.from_pretrained(model)
@@ -249,7 +249,8 @@ def plot_side_by_side_comparison(lora_history, fft_history, output_path):
     axes[1, 3].legend(fontsize=10)
     axes[1, 3].grid(True, alpha=0.3)
     axes[1, 3].set_xticks(epochs)
-    
+    plt.suptitle('LoRA vs Full Fine-Tuning Comparison - First 3 Epochs\n(FLAN-T5-base, 247M parameters)',
+                 fontsize=17, fontweight='bold', y=0.995)
     plt.tight_layout()
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"The Plot has been saved to: {output_path}")
@@ -366,7 +367,6 @@ def train_history_diff(lora_base_directory, fft_base_directory, output_path, num
     print(f"The path to the saved history for LoRA is: {lora_base_directory}")
     print(f"The path to the saved history for Full-Fine Tuning is: {fft_base_directory}")
     
-
 def main():
     """Main script with command line arguments."""
     
@@ -390,7 +390,7 @@ def main():
     parser.add_argument('--fft_dir', type=str,
                        help='Base directory for Full Fine-Tuning checkpoints')
     # Output Path
-    parser.add_argument('--output_plot', type=str, default='./comparison_plot.png',
+    parser.add_argument('--output_plot', type=str, default='./outputs/comparison_plot.png',
                        help='Path to save comparison plot')
     # EPOCHS
     parser.add_argument('--num_epochs', type=int, default=3,
@@ -409,7 +409,7 @@ def main():
         
         train_history_diff(lora_base_dir=args.lora_dir,  fft_base_dir=args.fft_dir, output_path=args.output_plot, num_epochs=args.num_epochs)
     
-    # Run predictions if the model_path has beenprovided
+    # Run predictions if the model_path has been provided
     if args.model_path:
         # Load test data
         print("Loading test dataset")
