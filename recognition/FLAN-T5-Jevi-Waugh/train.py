@@ -16,6 +16,8 @@ from dataset import BioDatasetLoader
 from modules import FLAN_T5_LoRA, FLAN_T5
 import logging
 import os
+import time
+import gc
 from transformers import AutoModelForSeq2SeqLM
 # Configure logger for it to print
 logging.basicConfig(level=logging.INFO)
@@ -519,5 +521,96 @@ class ESTrainer():
         
         return reward
     
+    def train(self, val_data, num_iterations=10, save_every=100, initial_seed=42) -> AutoModelForSeq2SeqLM:
+        """
+        This is the main ES training loop.
+        
+        Args:
+            val_data: Validation dataset
+            num_iterations: Number of ES iterations
+            save_every: Save checkpoint every N iterations
+            initial_seed: Random seed for reproducibility
+        """
+        print(f"Population size: {self.POPULATION_SIZE}")
+        print(f"Noise scale (σ): {self.SIGMA}")
+        print(f"Learning rate (α): {self.ALPHA}")
+        print(f"Iterations: {num_iterations}")
+        print(f"Validation samples per eval: {self.VAL_SAMPLES}")
+        
+        # Set random seed
+        np.random.seed(initial_seed)
+        torch.manual_seed(initial_seed)
+        
+        # Record how long it will take
+        training_start = time.time()
+        
+        for iteration in range(num_iterations):
+            iter_start = time.time()
+            print(f"Iteration {iteration + 1}/{num_iterations}")
+            
+            # Generate random seeds for population
+            seeds = np.random.randint(0, 2**30, size=self.POPULATION_SIZE, dtype=np.int64).tolist()
+            rewards = []
+            
+            # Evaluating each perturbed model
+            print("Evaluating population")
+            for seed_idx, seed in enumerate(tqdm(seeds, desc="Population")):
+                reward = self.evaluate_population_member(val_data, seed)
+                rewards.append(reward)
+                
+                if (seed_idx + 1) % 10 == 0:
+                    # Periodic cleanup for optimisation
+                    gc.collect()
+                    torch.cuda.empty_cache()
+            
+            # ES update (aggregate perturbations)
+            print("Applying ES update")
+            self.es_update(seeds, rewards)
+            
+            # Save history
+            rewards_array = np.array(rewards)
+            self.history['mean_reward'].append(float(rewards_array.mean()))
+            self.history['min_reward'].append(float(rewards_array.min()))
+            self.history['max_reward'].append(float(rewards_array.max()))
+            self.history['std_reward'].append(float(rewards_array.std()))
+            
+            iter_time = time.time() - iter_start
+            
+            # Print results
+            print(f"Iteration {iteration + 1} Outputs:")
+            print(f"  Mean Reward (ROUGE-1): {self.history['mean_reward'][-1]:.4f}")
+            print(f"  Min Reward:            {self.history['min_reward'][-1]:.4f}")
+            print(f"  Max Reward:            {self.history['max_reward'][-1]:.4f}")
+            print(f"  Std Dev:               {self.history['std_reward'][-1]:.4f}")
+            print(f"  Time: {iter_time:.2f}s")
+            
+            # Save checkpoint periodically
+            if (iteration + 1) % save_every == 0:
+                self.save_checkpoint(iteration + 1)
+                self.save_history()
+            
+            # Cleanup
+            gc.collect(); torch.cuda.empty_cache()
+        
+        total_time = time.time() - training_start
+        
+
+        print("Training finished")
+        print(f"Total time: {total_time:.2f}s ({total_time/60:.2f} minutes)")
+        # show mean reward
+        print(f"Final mean reward: {self.history['mean_reward'][-1]:.4f}")
+        
+        # Save final model
+        print("Saving final model")
+        final_path = os.path.join(self.output_dir, "final_model")
+        self.model.save_pretrained(final_path)
+        self.tokenizer.save_pretrained(final_path)
+        print(f"Final model saved to: {final_path}")
+        
+        # Save history and plots
+        self.save_history()
+        self.plot_training_curves()
+        
+        return self.model
     
     
