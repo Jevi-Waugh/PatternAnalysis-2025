@@ -312,7 +312,7 @@ def rouge_score(summary_predictor: PredictSummary, testing_data, num_samples=80)
     _print_rouge_metrics(outputs)
     
 def _print_rouge_metrics(metrics: Dict[str: float], 
-                        metric=Literal["rouge1", "rouge2", "rougeL", "rougeLsum", "all"]="rouge1") -> None:
+                        metric: Literal["rouge1", "rouge2", "rougeL", "rougeLsum", "all"]="rouge1") -> None:
     
     keys = metric.keys() if metric["all"] else [metric]
     for k in keys:
