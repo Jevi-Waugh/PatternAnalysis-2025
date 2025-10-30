@@ -367,3 +367,43 @@ class ESTrainer():
             json.dump(checkpoint_info, f, indent=2)
         
         print(f"Checkpoint saved at: {checkpoint_dir}")
+        
+    
+    def perturb_weights(self, sigma, restore=False, seed=48829678):
+        """
+        Add or subtract Gaussian noise to all model parameters. This is a variant of process_seed()
+        from the EVOLUTION STRATEGIES AT SCALE: LLM FINETUNING BEYOND REINFORCEMENT LEARNING Paper
+        
+        Args:
+            seed: Random seed for reproducible perturbation
+            sigma: Noise scale (standard deviation)
+            restore: If True, subtract noise; if False, add noise
+        """
+        sign = -1.0 if restore else 1.0
+        
+        for param in self.model.parameters():
+            if not param.requires_grad:
+                continue
+            
+            # Create a generator
+            gen = torch.Generator(device=param.device)
+            # get the seed
+            gen.manual_seed(int(seed))
+            
+            # Generate some nice noise
+            noise = torch.randn(
+                param.shape,
+                dtype=param.dtype,
+                device=param.device,
+                generator=gen
+            )
+            
+            param.data.add_(sign * sigma * noise)
+            # for optimisation purposes we delete the noise manually from memory
+            del noise
+        
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
+            torch.cuda.empty_cache()
+            
+    
