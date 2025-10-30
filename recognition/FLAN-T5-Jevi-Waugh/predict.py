@@ -27,8 +27,8 @@ class PredictSummary():
             model (str, optional): Model type for e.g. small or base. Defaults to "google/flan-t5-small".
         """
         
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.tokeniser = AutoTokenizer.from_pretrained(model_path)
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.tokeniser = AutoTokenizer.from_pretrained(model if lora else model_path)
         
         if lora:
             # Load base model and LoRA adapter
@@ -285,15 +285,15 @@ def inference(summary_predictor: PredictSummary, testing_input, number=4):
         number (int, optional): Number of examples. Defaults to 4.
     """
     print(f"Inference on {number} examples")
-    for idx in range(number):
-        print(f"Test example {idx}")
-        sample = testing_input[idx]
-        original_report = sample["radiology_report"]
-        reference_summary = sample["layman_report"]
-        
-        # generate summary
+    # Getting the actual length from one of the dictionary keys
+    data_length = len(testing_input['radiology_report'])
+    
+    for i in range(min(number, data_length)):
+        original_report = testing_input['radiology_report'][i]
+        reference_summary = testing_input['layman_report'][i]
+        print(f"Example {i + 1}: \n")
+        # Generate summary
         gen_summary = summary_predictor.predict_summary(original_report)
-        
         # show comparison
         printing_comparison(original_report, gen_summary, reference_summary)
         
@@ -418,9 +418,11 @@ def main():
         print("Loading test dataset")
         dataloader = BioDatasetLoader()
         dataloader.load_dataset(splits=("test",))
-        test_data = dataloader.test
         
-        print(f"Test dataset size: {len(test_data)}")
+        # We use validation so that we can compare with the reference.
+        val_data = dataloader.validation
+        
+        print(f"Test dataset size: {len(val_data)}")
         
         # Load predictor
         predictor = PredictSummary(
@@ -429,11 +431,11 @@ def main():
         )
         print("="*10)
         # Demonstrate predictions
-        inference(predictor, test_data, num_examples=args.num_examples)
+        inference(predictor, val_data, num_examples=args.num_examples)
         
         # Calculate ROUGE if needed
         if args.calculate_rouge:
-            rouge_score(predictor, test_data, num_samples=100)
+            rouge_score(predictor, val_data, num_samples=100)
         
         print("Demonstration for predictions have been shown.")
 
