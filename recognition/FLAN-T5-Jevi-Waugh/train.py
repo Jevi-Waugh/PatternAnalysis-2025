@@ -11,14 +11,16 @@ import json
 import evaluate
 from tqdm import tqdm
 from transformers import get_linear_schedule_with_warmup
-
+from transformers import AutoTokenizer
 from dataset import BioDatasetLoader
 from modules import FLAN_T5_LoRA, FLAN_T5
 import logging
 import os
+from transformers import AutoModelForSeq2SeqLM
 # Configure logger for it to print
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+BASE_OUTPUT_DIR = "FLAN-T5-Jevi-Waugh/outputs"
 
 class BioTrainer:
     def __init__(self, model, tokeniser, train_dataset, eval_dataset, data_collator,
@@ -69,7 +71,6 @@ class BioTrainer:
             # Make sure that the generation length is consistent
             'gen_len': []
         }
-        
     
     def save_model(self, saving_path=None):
         """Saves the model and tokeniser 
@@ -232,7 +233,7 @@ class BioTrainer:
     def _singular_loop(self, epoch):
         """This will train for a only a singular epoch passing through teh entire dataset.
         """
-        
+
         class EpochTracker:
             """Tracker for epoch
             """
@@ -292,5 +293,40 @@ class BioTrainer:
         
         return tracker.get_avg()
     
-
+class ESTrainer():
+    """Evolution Strategies trainer for FLAN-T5
+    """
+    def __init__(self, model_name="google/flan-t5-base", output_directory=None):
+        self.model_name = model_name
+        
+        # Load model and tokenizer
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(
+            model_name,
+            torch_dtype=torch.float32
+        ).to(self.device)
+        
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        # Disabling dropout for deterministic evaluation
+        self.model.eval()  
+        
+        # Load ROUGE metric
+        self.rouge = evaluate.load("rouge")
+        
+        # Setup output directory
+        if output_directory is None:
+            output_directory = os.path.join(BASE_OUTPUT_DIR, "output_es_flan_base")
+        self.output_directory = output_directory
+        os.makedirs(output_directory, exist_ok=True)
+        os.makedirs(os.path.join(output_directory, "checkpoints"), exist_ok=True)
     
+    #  Training history
+        self.history = {
+            'mean_reward': [],
+            'min_reward': [],
+            'max_reward': [],
+            'std_reward': []
+        }
+        
+        print(f"The Model has been loaded on {self.device}")
+        print(f"Total parameters: {sum(p.numel() for p in self.model.parameters()):,}")
+        print(f"Output directory: {output_directory}")
