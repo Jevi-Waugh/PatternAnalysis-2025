@@ -151,6 +151,7 @@ class BioTrainer:
             self.print_message(mss)
             #   get training loss
             training_loss = self._singular_loop(epoch)
+            self.history['train_loss'].append(training_loss)
             
             
             #  Do evaluation
@@ -215,6 +216,14 @@ class BioTrainer:
             self.history['gen_len'].append(eval_metrics['gen_len'])
             
             # print results
+            self.print_message(message=f"Epoch: {epoch + 1} outputs.")
+            print(f"  Training Loss:   {t_loss:.4f}")
+            print(f"  Validation Loss: {eval_metrics['eval_loss']:.4f}")
+            print(f"  ROUGE-1:         {eval_metrics['rouge1']:.4f}")
+            print(f"  ROUGE-2:         {eval_metrics['rouge2']:.4f}")
+            print(f"  ROUGE-Lsum:      {eval_metrics['rougeLsum']:.4f}")
+            print(f"  ROUGE-L:         {eval_metrics['rougeL']:.4f}")
+            print(f"  Gen Length:      {eval_metrics['gen_len']:.2f}")
             
             # save checkpoints
             
