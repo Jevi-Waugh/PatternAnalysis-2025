@@ -297,14 +297,41 @@ def inference(summary_predictor: PredictSummary, testing_input, number=4):
         # show comparison
         printing_comparison(original_report, gen_summary, reference_summary)
         
-def rouge_score(summary_predictor: PredictSummary, testing_data, num_samples=80):
-    
+def rouge_score(summary_predictor: PredictSummary, testing_data, num_samples=50):
+    """Calculates rouge scores
+
+    Args:
+        summary_predictor (PredictSummary): Predictor class
+        testing_data (_type_): Testing data (validation)
+        num_samples (int, optional): Number of examples. Defaults to 50.
+
+    Returns:
+        _type_: None
+    """
     rouge = load("rouge")
-    data_samples = testing_data[:num_samples]
+    try:
+        reports = testing_data['radiology_report'][:num_samples]
+    except Exception as error:
+        logger.warning(f"Error: Could not load reports: {error}")
+    try:   
+        references = testing_data['layman_report'][:num_samples]
+    except Exception as error:
+        logger.warning(f"Error: Could not load references: {error}")
+        
+    # Take out the empty references
+    valid_indices = [i for i, ref in enumerate(references) if ref and ref.strip()]
     
-    # generate predictions
-    reports = [sample["radiology_reports"] for sample in data_samples]
-    ground_truth_reference = [sample["layman_report"] for sample in data_samples]
+    if len(valid_indices) < num_samples:
+        logger.warning(f"Warning: {len(valid_indices)} samples have non-empty reference summaries out of {num_samples}")
+    
+    if len(valid_indices) == 0:
+        logger.warning("Critical Error: No valid reference summaries found."); return None
+    
+    print(f"{len(valid_indices)} samples for ROUGE calculation")
+    
+    # Using only valid samples
+    reports = [reports[i] for i in valid_indices]
+    ground_truth_reference = [references[i] for i in valid_indices]  
     
     preds = summary_predictor.predict_batch_summaries(reports)
     
