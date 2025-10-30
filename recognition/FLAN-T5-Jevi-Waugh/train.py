@@ -231,6 +231,55 @@ class BioTrainer:
             
         # save history and metrics
         self._save_history()
+        # plot according to spec
+        self.plot_training_curves()
+        
+    def plot_training_curves(self):
+        """Plot and save training curves."""
+        epochs = range(1, len(self.history['train_loss']) + 1)
+        
+        fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+        
+        # Loss curves
+        axes[0, 0].plot(epochs, self.history['train_loss'], 'b-o', label='Training Loss')
+        axes[0, 0].plot(epochs, self.history['eval_loss'], 'r-o', label='Validation Loss')
+        axes[0, 0].grid(True)
+        axes[0, 0].set_xlabel('Epoch')
+        axes[0, 0].set_title('Training and Validation Loss')
+        axes[0, 0].set_ylabel('Loss')
+        axes[0, 0].legend()
+        
+        # Generation length
+        axes[1, 0].plot(epochs, self.history['gen_len'], 'm-o')
+        axes[1, 0].grid(True)
+        axes[1, 0].set_title('Generation Length Over Training')
+        axes[1, 0].set_ylabel('Average Generation Length')
+        axes[1, 0].set_xlabel('Epoch')
+        
+        # ROUGE-Lsum
+        axes[1, 1].plot(epochs, self.history['rougeLsum'], 'c-o')
+        axes[1, 1].grid(True)
+        axes[1, 1].set_ylabel('ROUGE-Lsum Score')
+        axes[1, 1].set_title('ROUGE-Lsum Over Training')
+        axes[1, 1].set_xlabel('Epoch')
+        
+        # ROUGE scores
+        axes[0, 1].plot(epochs, self.history['rouge1'], 'g-o', label='ROUGE-1')
+        axes[0, 1].plot(epochs, self.history['rouge2'], 'b-o', label='ROUGE-2')
+        axes[0, 1].plot(epochs, self.history['rougeL'], 'r-o', label='ROUGE-L')
+        axes[0, 1].set_title('ROUGE Scores Over Training')
+        axes[0, 1].set_xlabel('Epoch')
+        axes[0, 1].set_ylabel('ROUGE Score')
+        axes[0, 1].legend()
+        axes[0, 1].grid(True)
+        plt.tight_layout()
+        
+        plot_path = os.path.join(self.output_dir, "training_curves.png")
+        plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+        print(f"Training curves saved to: {plot_path}")
+        # show while training
+        plt.show()
+        plt.close()
         
     def _singular_loop(self, epoch):
         """This will train for a only a singular epoch passing through teh entire dataset.
@@ -450,7 +499,8 @@ class ESTrainer():
             
             # According to the paper, we
             # Update lth layer’s parameters in-place as 
-            # θ ← θ + α * (1/N) * Σ(R_normalized * ε)
+            # shown below
+            # θ ← θ + α * (1/N) *  Σ( R_normalised * ε )
             param.data.add_((self.ALPHA / self.POPULATION_SIZE) * update)
             del update
             
@@ -602,9 +652,9 @@ class ESTrainer():
         
         # Save final model
         print("Saving final model")
-        final_path = os.path.join(self.output_dir, "final_model")
+        final_path = os.path.join(self.output_directory, "final_model")
         self.model.save_pretrained(final_path)
-        self.tokenizer.save_pretrained(final_path)
+        self.tokeniser.save_pretrained(final_path)
         print(f"Final model saved to: {final_path}")
         
         # Save history and plots
@@ -613,4 +663,41 @@ class ESTrainer():
         
         return self.model
     
-    
+    def plot_training_curves(self):
+        """Plot and save ES training curves"""
+        iterations = range(1, len(self.history['mean_reward']) + 1)
+        
+        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+        
+        # Plot 1: Reward progression
+        axes[0].plot(iterations, self.history['mean_reward'], 'b-o', label='Mean Reward', linewidth=2)
+        axes[0].fill_between(
+            iterations,
+            np.array(self.history['mean_reward']) - np.array(self.history['std_reward']),
+            np.array(self.history['mean_reward']) + np.array(self.history['std_reward']),
+            alpha=0.3
+        )
+        axes[0].plot(iterations, self.history['max_reward'], 'g--', label='Max Reward', alpha=0.7)
+        axes[0].plot(iterations, self.history['min_reward'], 'r--', label='Min Reward', alpha=0.7)
+        axes[0].set_xlabel('Iteration', fontsize=12, fontweight='bold')
+        axes[0].set_ylabel('ROUGE-1 Score', fontsize=12, fontweight='bold')
+        axes[0].set_title('ES Training Progress\n(FLAN-T5-base on BioLaySumm)', 
+                         fontsize=13, fontweight='bold')
+        axes[0].legend(fontsize=10)
+        axes[0].grid(True, alpha=0.3)
+        
+        # Plot 2: Reward variance
+        axes[1].plot(iterations, self.history['std_reward'], 'm-o', linewidth=2)
+        axes[1].set_xlabel('Iteration', fontsize=12, fontweight='bold')
+        axes[1].set_ylabel('Reward Std Dev', fontsize=12, fontweight='bold')
+        axes[1].set_title('Population Diversity\n(Exploration)', 
+                         fontsize=13, fontweight='bold')
+        axes[1].grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        
+        plot_path = os.path.join(self.output_directory, "es_training_curves.png")
+        plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+        print(f"Training curves saved to: {plot_path}")
+        plt.show()
+        plt.close()
