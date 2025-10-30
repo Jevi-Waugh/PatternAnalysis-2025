@@ -40,7 +40,6 @@ class PredictSummary():
     def _load_model(self, model) -> AutoModelForSeq2SeqLM:
         return AutoModelForSeq2SeqLM.from_pretrained(model)
     
-    
     def predict_summary(self, text, max_length=256, num_beams=4, temperature=1.0):
         """This function will generate a layman summary for a radiology report.
 
@@ -108,10 +107,6 @@ class PredictSummary():
             summaries.extend(batch_summaries)
         
         return summaries
-        
-    
-    
-    
     
 def load_checkpoint_history(base_directory, num_epochs=3):
     """
@@ -156,7 +151,6 @@ def load_checkpoint_history(base_directory, num_epochs=3):
             return None
     
     return history
-
 
 def plot_side_by_side_comparison(lora_history, fft_history, output_path):
     """
@@ -256,7 +250,23 @@ def plot_side_by_side_comparison(lora_history, fft_history, output_path):
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"The Plot has been saved to: {output_path}")
     plt.close()
+
+def printing_comparison(original_report, generated_summ, reference_summ):
+    """This will print a formated comparison of the original report, generated and summary.
+
+    Args:
+        original_one (_type_): Original radiology report
+        generated (_type_): Generated Layman summary
+        reference (_type_): Reference layman summary
+    """
+    print("Original report: ")
+    print(original_report)
     
+    print("Generated Layman summary: ")
+    print(generated_summ)
+    
+    print("Reference layman summary")
+    print(reference_summ)
     
     
     
