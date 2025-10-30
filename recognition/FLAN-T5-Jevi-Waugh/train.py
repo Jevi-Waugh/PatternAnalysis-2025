@@ -235,7 +235,7 @@ class BioTrainer:
         self.plot_training_curves()
         
     def plot_training_curves(self):
-        """Plot and save training curves."""
+        """Plottings and saving training curves for BioTrainer"""
         epochs = range(1, len(self.history['train_loss']) + 1)
         
         fig, axes = plt.subplots(2, 2, figsize=(15, 10))
@@ -664,7 +664,7 @@ class ESTrainer():
         return self.model
     
     def plot_training_curves(self):
-        """Plot and save ES training curves"""
+        """Plot and save ES training curves for ESTrainer"""
         iterations = range(1, len(self.history['mean_reward']) + 1)
         
         fig, axes = plt.subplots(1, 2, figsize=(14, 5))
