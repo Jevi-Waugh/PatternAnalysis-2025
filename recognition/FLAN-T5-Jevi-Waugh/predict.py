@@ -11,6 +11,7 @@ import numpy as np
 import os
 import json
 from evaluate import load
+from typing_extensions import Dict, Literal
 class PredictSummary():
     
     def __init__(self, model_path, lora=False, model="google/flan-t5-small"):
@@ -290,3 +291,27 @@ def inference(summary_predictor: PredictSummary, testing_input, number=4):
         # show comparison
         printing_comparison(original_report, gen_summary, reference_summary)
         
+def rouge_score(summary_predictor: PredictSummary, testing_data, num_samples=80):
+    
+    rouge = load("rouge")
+    data_samples = testing_data[:num_samples]
+    
+    # generate predictions
+    reports = [sample["radiology_reports"] for sample in data_samples]
+    ground_truth_reference = [sample["layman_report"] for sample in data_samples]
+    
+    preds = summary_predictor.predict_batch_summaries(reports)
+    
+    # Use Porter stemmer to strip word suffixes
+    outputs = rouge.compute(predictions=preds, references=ground_truth_reference, use_stemmer=True)
+    
+    # print all metrics
+    _print_rouge_metrics(outputs)
+    
+def _print_rouge_metrics(metrics: Dict[str: float], 
+                        metric=Literal["rouge1", "rouge2", "rougeL", "rougeLsum", "all"]="rouge1") -> None:
+    
+    keys = metric.keys() if metric["all"] else [metric]
+    for k in keys:
+        print(f"{k.upper()}: {metrics[k]:.4f}")
+    
