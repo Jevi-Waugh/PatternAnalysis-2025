@@ -130,6 +130,7 @@ class BioTrainer:
         """Main training loop for the model. This includes training phase, testing phase through
            the evaluation set and saving the model as well as histories.
         """
+        MAX_LENGTH = 256
         # check checkpoints first
         if self.save_checkpoints: logger.info("The checkpoint will be saved at: {self.checkpoint_dir}")
         
@@ -157,24 +158,28 @@ class BioTrainer:
                 # loop through each batch
                 for batch in progress_bar:
                     for num, sample in batch.items():
+                        # Transfer to device - GPU
                         batch[num] = sample.to(self.device)
                     # get loss
-                    with torch.cuda.amp.autocast(dtype=torch.float32):
+                    with torch.cuda.amp.autocast("cuda", dtype=torch.float32):
                         outputs = self.model(**batch)
                     
                     t_loss += outputs.loss.item()
                     
                     # generate predictions
-                    # look up param on huggingface
-                    tokens = self.model.generate()
+                    inputs = batch["input_ids"]
+                    attention_m  = batch["attention_mask"]
+                    tokens = self.model.generate(inputs, attention_m, max_length=MAX_LENGTH)
                     
                     # use tokeiser to decode
-                    decoded_preds = self.tokeniser.batch_decode(tokens)
+                    decoded_preds = self.tokeniser.batch_decode(tokens, skip_special_tokens=True)
                     
                     # get labels
                     labels = batch["labels"]
                     # decode label
-                    decoded_labels = ...
+                    pad_tok = self.tokenizer.pad_token_id
+                    labels = torch.where(labels != -100, labels, pad_tok)
+                    decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
                     
                     preds.extend(decoded_preds)
                     all_labels.extend(decoded_labels)
@@ -201,6 +206,7 @@ class BioTrainer:
             self.history['rougeLsum'].append(eval_metrics['rougeLsum'])
             self.history['rougeL'].append(eval_metrics['rougeL'])
             self.history['gen_len'].append(eval_metrics['gen_len'])
+            
             # print results
             
             # save checkpoints
