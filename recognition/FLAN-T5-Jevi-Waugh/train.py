@@ -701,3 +701,94 @@ class ESTrainer():
         print(f"Training curves saved to: {plot_path}")
         plt.show()
         plt.close()
+        
+
+def main(use_lora=True, learning_rate=None, base_output_dir="/FLAN-T5-Jevi-Waugh/outputs"):
+    """
+    Main training function.
+    
+    Args:
+        use_lora: If True, use LoRA. If False, use full fine-tuning.
+        learning_rate: Learning rate (if None, it uses default based on method)
+        base_output_dir: Base directory for saving all outputs (default: Google Drive)
+    """
+    # Creating base output directory
+    os.makedirs(base_output_dir, exist_ok=True)
+    
+    method = "LoRA" if use_lora else "Full Fine-Tuning"
+    print(f"Training FLAN-T5 with {method}")
+    
+    # Load dataset
+    print("Loading dataset...")
+    dataloader = BioDatasetLoader()
+    dataloader.load_dataset()
+    # Load tokeniser first
+    print("Loading tokeniser...")
+    dataloader._load_tokeniser("google/flan-t5-base")
+    
+    # 3. Setup data collator
+    print("Setting up data collator")
+    dataloader._padding()
+    
+    # Process datasets
+    print("Processing datasets...")
+    
+    print("Processing training dataset")
+    train_dataset = dataloader.process_dataset(dataloader.train)
+    
+    print("Processing validation dataset")
+    eval_dataset = dataloader.process_dataset(dataloader.validation)
+    
+    # Initialising model
+    print(f"Initialising model with {method}...")
+    if use_lora:
+        model_wrapper = FLAN_T5_LoRA(
+            model_name="google/flan-t5-base",
+            lora_r=32,
+            lora_alpha=64,
+            lora_dropout=0.07,
+            target_modules = ["q", "v", "k", "o", "wi", "wo"]
+        )
+        default_lr = 3e-4  # Higher LR for LoRA
+        output_dir = os.path.join(base_output_dir, "output_lora_base")
+    else:
+        model_wrapper = FLAN_T5(model_name="google/flan-t5-base")
+        # We need a lower LR for full fine-tuning
+        default_lr = 4e-5  
+        output_dir = os.path.join(base_output_dir, "output_full_finetuning_base")
+    
+    # Use provided learning rate or default
+    lr = learning_rate if learning_rate is not None else default_lr
+    print(f"Learning rate: {lr}")
+    print(f"Output directory: {output_dir}")
+    
+    # 6. Create trainer
+    print("\n6. Creating trainer...")
+    trainer = BioTrainer(
+        model=model_wrapper.get_model(),
+        tokenizer=model_wrapper.get_tokenizer(),
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        data_collator=dataloader.data_collator,
+        learning_rate=lr,
+        num_epochs=4,
+        batch_size=10,
+        output_dir=output_dir,
+        # Enable checkpoint saving
+        save_checkpoints=True  
+    )
+    
+    # 7. Train and Save model
+    print("Starting training")
+    history = trainer.train_model()
+    print("Saving final model")
+    trainer.save_model()
+    
+    print("Training completed!")
+    print(f"Results are saved in: {output_dir}")
+    
+    return trainer, trainer.saved_history
+
+
+if __name__ == "__main__":
+    main()
