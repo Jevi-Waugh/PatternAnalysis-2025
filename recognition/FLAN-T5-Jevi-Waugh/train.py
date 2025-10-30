@@ -31,10 +31,14 @@ class BioTrainer:
         self.save_checkpoints = save_checkpoints
         self.output_dir = output_dir
         self.num_epochs = num_epochs
+        self.SYMBOL = "_"
         
         # need to control batch size for training time flexibiloty
         self.batch_size = batch_size
         self.model = model.to(self.device)
+        
+        # set prediction generation length
+        self.MAX_LENGTH = 256
         
         os.makedirs(output_dir, exist_ok=True)
         if save_checkpoints: 
@@ -125,23 +129,26 @@ class BioTrainer:
         checkpoint_metrics_path = os.path.join(checkpoint_path, "checkpoint_metrics.json")
         with open(checkpoint_metrics_path, 'w') as f: json.dump(checkpoint_metrics, f, indent=3)
         logger.info(f" Checkpoint saved at: {checkpoint_path}")
+    
+    def print_message(self,message):
         
+        aesthetic_bar = 14 + len(message)
+        logger.info(f"\n{self.SYMBOL*aesthetic_bar}")
+        logger.info(message)
+        logger.info(f"\n{self.SYMBOL*aesthetic_bar}")
+    
     def train_model(self) -> None:
         """Main training loop for the model. This includes training phase, testing phase through
            the evaluation set and saving the model as well as histories.
         """
-        MAX_LENGTH = 256
+        
         # check checkpoints first
         if self.save_checkpoints: logger.info("The checkpoint will be saved at: {self.checkpoint_dir}")
         
         # loop through epochs
         for epoch in self.num_epochs:
-            symbol = "_"
             mss = f"Epoch {epoch + 1}/{self.num_epochs}"
-            aesthetic_bar = 14 + len(mss)
-            logger.info(f"\n{symbol*aesthetic_bar}")
-            logger.info(mss)
-            logger.info(f"\n{symbol*aesthetic_bar}")
+            self.print_message(mss)
             #   get training loss
             training_loss = self._singular_loop(epoch)
             
@@ -169,7 +176,7 @@ class BioTrainer:
                     # generate predictions
                     inputs = batch["input_ids"]
                     attention_m  = batch["attention_mask"]
-                    tokens = self.model.generate(inputs, attention_m, max_length=MAX_LENGTH)
+                    tokens = self.model.generate(inputs, attention_m, max_length=self.MAX_LENGTH)
                     
                     # use tokeiser to decode
                     decoded_preds = self.tokeniser.batch_decode(tokens, skip_special_tokens=True)
@@ -277,3 +284,6 @@ class BioTrainer:
         progress_bar.set_postfix(loss_dict)
         
         return tracker.get_avg()
+    
+
+    
