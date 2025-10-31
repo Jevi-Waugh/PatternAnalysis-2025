@@ -11,6 +11,7 @@ The architecture of the vanilla T5 model is shown below to showcase some of its 
 ---
 
 ![T5](outputs/T5.jpg)
+
 [Attention Is All You Need](https://arxiv.org/pdf/1706.03762)
 
 ---
