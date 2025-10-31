@@ -289,10 +289,36 @@ lora_config = LoraConfig(
 ---
 
 ## Hardware Configuration
-The env it was trained on
+
+- **Platform**: Google Colab Pro
+- **GPU**: 
+  - Nvidea A100 (32 GB VRAM) for small and base model experiments
+- **System RAM**: 40-80 GB (depending on experiments)
+- **Disk**: 255GB
+- **CUDA Version**: 12.2
+- **PyTorch Version**: 2.1.0
 
 ## Training 
 ### Training Time Summary
+
+
+| Model | Strategy | Epochs | Batch Size | Training Time | GPU Utilisation |
+|-------|----------|--------------|------------|---------------|-----------------|
+| FLAN-T5-Small | Full Fine-Tuning | 4 | 16 | ~ hours | ~85% |
+| FLAN-T5-Small | LoRA | 4 | 16 | ~ hours | ~60% |
+| FLAN-T5-Base | Full Fine-Tuning | 4* (3) | 10 | ~ hours | ~95% |
+| FLAN-T5-Base | LoRA | 4 | 10 | ~ hours | ~75% |
+| FLAN-T5-Base | Evolution Strategies | 15 | 10 (pop) | **~45 minutes** | ~70% |
+
+*Interrupted due to Colab compute limits.
+
+**Evolution Strategies Configuration**:
+- **Population Size**: 10 candidate models per iteration
+- **Fitness Evaluations**: 30 validation samples per candidate
+- **Time per Iteration**: ~3 minutes (10 × 18 seconds per candidate)
+- **Total Iterations**: 15
+- **Speedup**: 4-11× faster per iteration than gradient-based training
+
 ### Training Procedure
 
 <!-- we put this inside for now -->
