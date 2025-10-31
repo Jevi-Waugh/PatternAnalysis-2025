@@ -857,7 +857,7 @@ If you use this code or methodology in your research, please cite:
   title = {Fine-Tuning FLAN-T5 using Full Fine-Tuning and LoRA for BioLaySumm},
   year = {2025},
   publisher = {GitHub},
-  howpublished = {}
+  howpublished = {\ur{https://github.com/Jevi-Waugh/PatternAnalysis-2025/tree/topic-recognition/recognition/FLAN-T5-Jevi-Waugh}}
 }
 ```
 
