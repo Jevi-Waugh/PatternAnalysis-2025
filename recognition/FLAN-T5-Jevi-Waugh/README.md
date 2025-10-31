@@ -603,7 +603,107 @@ Note:  LoRA here takes longer due to the maximum adapater loaded, otherwise it w
 This section demonstrates the model's performance on real radiology reports from the validation set. Predictions were generated using the best checkpoint (FLAN-T5-Base with LoRA) with beam search decoding.
 
 ## Prediction Examples
+### Example 1
 
+**Input (Expert Radiology Report)**:
+```
+The chest shows significant air trapping. Bilateral apical chronic changes are present. Dorsal kyphosis is noted. No evidence of pneumothorax.
+```
+
+**Model Prediction (Generated Layperson Summary)**:
+```
+The chest x-ray shows that there is a lot of air trapped in the lungs. There are long-term changes at the top of both lungs. The upper back is curved outward. There is no sign of air outside the lungs.
+```
+
+**Reference (Ground Truth Layperson Summary)**:
+```
+The chest shows a large amount of trapped air. There are long-term changes at the top of both lungs. The upper back is curved outward. There is no sign of air in the space around the lungs.
+```
+
+---
+
+### Example 2
+
+**Input (Expert Radiology Report)**:
+```
+Central venous catheter traversing the left jugular vein with its tip in the superior vena cava. The remainder is unchanged.
+```
+
+**Model Prediction (Generated Layperson Summary)**:
+```
+A central venous catheter is going through the left jugular vein and its tip is in the superior vena cava. Everything else looks the same as before.
+```
+
+**Reference (Ground Truth Layperson Summary)**:
+```
+A central venous catheter is going through the left jugular vein and its tip is in the superior vena cava. Everything else is the same as before.
+```
+
+---
+
+### Example 3
+
+**Input (Expert Radiology Report)**:
+```
+Chronic pulmonary changes
+```
+
+**Model Prediction (Generated Layperson Summary)**:
+```
+Long-term changes in the lungs are seen.
+```
+
+**Reference (Ground Truth Layperson Summary)**:
+```
+Long-term changes in the lungs are seen.
+```
+
+---
+
+### Example 4
+
+**Input (Expert Radiology Report)**:
+```
+Radiological signs of air trapping, flattened diaphragm, and increased retrosternal space. Calcified pleural plaques at the level of the left diaphragmatic pleura. Loss of volume in the left lung with subpleural linear opacities. Findings are related to chronic inflammatory changes due to asbestos exposure. Review of previous CT scan shows no significant changes compared to the scanogram dated 3/4/2009.
+```
+
+**Model Prediction (Generated Layperson Summary)**:
+```
+The radiology images show signs of air being trapped in the lungs, the diaphragm is flattened, and there's an increased space behind the breastbone. There are calcified plaques on the left side of the diaphragm lining. The left lung has lost some volume and there are linear opacities near the lung surface. These findings are related to long-term inflammation due to asbestos exposure. Looking at the previous CT scan, there are no significant changes compared to the scanogram dated 3/4/2009.
+```
+
+**Reference (Ground Truth Layperson Summary)**:
+```
+The X-ray shows signs of trapped air, a flattened muscle under the lungs, and more space behind the breastbone. There are also hardened areas on the lung lining on the left side. The left lung has lost some volume and has some linear shadows near the outer lining. These findings are related to long-term inflammation caused by exposure to asbestos. Looking at the previous CT scan, there are no significant changes compared to the scanogram dated 3/4/2009.
+
+```
+
+---
+
+### Example 5
+
+**Input (Expert Radiology Report)**:
+```
+Calcified granuloma in the right lung vertex.
+```
+
+**Model Prediction (Generated Layperson Summary)**:
+```
+There is a calcified granuloma, which is a type of hardened lump, in the top part of the right lung.
+```
+
+**Reference (Ground Truth Layperson Summary)**:
+```
+There is a calcified granuloma located at the top of the right lung.
+```
+
+**Rouge scores based on 100 validation samples**
+- ROUGE-1:    0.7328
+- ROUGE-2:    0.5422
+- ROUGE-L:    0.6730
+- ROUGE-Lsum: 0.6737
+
+---
 
 ## Project Access
 ### CUDA, GPU and Google Collab
