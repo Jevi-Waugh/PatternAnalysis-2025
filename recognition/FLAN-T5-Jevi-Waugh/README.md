@@ -322,10 +322,10 @@ lora_config = LoraConfig(
 
 | Model | Strategy | Epochs | Batch Size | Training Time | GPU Utilisation |
 |-------|----------|--------------|------------|---------------|-----------------|
-| FLAN-T5-Small | Full Fine-Tuning | 4 | 16 | ~ 1.38 hours | ~85% |
-| FLAN-T5-Small | LoRA | 4 | 16 | ~ 1.9 hours | ~60% |
-| FLAN-T5-Base | Full Fine-Tuning | 4* (3) | 10 | ~ 3.3 hours | ~95% |
-| FLAN-T5-Base | LoRA | 4 | 10 | ~ 4.18 hours | ~75% |
+| FLAN-T5-Small | Full Fine-Tuning | 4 | 16 | ~ 1.38 hours | ~60% |
+| FLAN-T5-Small | LoRA | 4 | 16 | ~ 1.9 hours | ~75% |
+| FLAN-T5-Base | Full Fine-Tuning | 4* (3) | 10 | ~ 3.3 hours | ~85% |
+| FLAN-T5-Base | LoRA | 4 | 10 | ~ 4.18 hours | ~95% |
 | FLAN-T5-Base | Evolution Strategies | 15 | 10 (pop) | **~45 minutes** | ~70% |
 
 *Interrupted due to Colab compute limits.
@@ -591,6 +591,7 @@ Higher ROUGE scores indicate better summary in terms of quality. Scores range fr
 - ES is considered slow due to its stochastic nature in random sampling which may continously change the scores. Hence, it requires a lot more compute in general.
 
 ### LoRA vs Full Fine-Tuning Comparison (3 Epochs)
+We plot for three epochs because FFT for the base model had been interrupted due to compute constraints.
 ![lora vs fft ](outputs/lora_vs_fft_comparison_3epochs.png)
 
 
