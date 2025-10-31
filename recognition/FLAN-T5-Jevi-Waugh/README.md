@@ -23,18 +23,16 @@ The architecture of the vanilla T5 model is shown below to showcase some of its 
 3. [Dataset](#dataset)
 4. [Evolution Strategies (ES) Algorithm](#evolution-strategies-es-algorithm)
 5. [Models and Architectures](#models-and-architectures)
-6. [LoRA Method and Mathematics](#lora-details)
-7. [Fine-Tuning Strategies](#fine-tuning-methods)
+6. [LoRA Method](#lora-concept)
+7. [Fine-Tuning Strategies](#fine-tuning-in-models)
 8. [Hardware Configuration](#hardware-configuration)
 9. [Training Procedure](#training-procedure)
 10. [Results and Evaluation](#results-and-evaluation)
-11. [Visualisations and Plots](#visualisations-and-plots)
-12. [Inference and Prediction Examples](#prediction-examples)
-13. [Comparative analysis](#comparative-analysis)
-14. [Error Analysis](#error-analysis)
-15. [Reproducibility](#reproducibility)
-16. [Access to project](#project-access)
-17. [References](#references)
+11. [Inference and Prediction Examples](#prediction-examples)
+12. [Comparative analysis](#comparative-analysis)
+13. [Reproducibility](#reproducibility)
+14. [Access to project](#project-access)
+15. [References](#references)
 ---
 
 ## Introduction
@@ -210,7 +208,7 @@ FLAN-T5 is an instruction-tuned version of the T5 model.
 - Inference speed is very close to being the same between LoRA and full models
 - Training memory in terms of gradients is reduced by 95-98%
 
-### Fine-tuning in models?
+### Fine-tuning in models
 
 #### Full Fine-Tuning (FFT)
 Updates **all parameters** including:
