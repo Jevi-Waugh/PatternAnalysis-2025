@@ -23,7 +23,7 @@ from transformers import AutoModelForSeq2SeqLM
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 BASE_OUTPUT_DIR = "FLAN-T5-Jevi-Waugh/outputs"
-
+SEED = 48829678
 class BioTrainer:
     def __init__(self, model, tokeniser, train_dataset, eval_dataset, data_collator,
                  learning_rate=5e-4, num_epochs=4, batch_size=16, 
@@ -428,7 +428,7 @@ class ESTrainer():
         print(f"Checkpoint saved at: {checkpoint_dir}")
         
     
-    def perturb_weights(self, sigma, restore=False, seed=48829678):
+    def perturb_weights(self, sigma, restore=False, seed=SEED):
         """
         Add or subtract Gaussian noise to all model parameters. This is a variant of process_seed()
         from the EVOLUTION STRATEGIES AT SCALE: LLM FINETUNING BEYOND REINFORCEMENT LEARNING Paper
@@ -506,7 +506,6 @@ class ESTrainer():
             
         torch.cuda.empty_cache()
         
-    
     def evaluate_population_member(self, val_data, seed, val_samples):
         """
         Evaluate a single perturbed model on validation set.
@@ -571,7 +570,7 @@ class ESTrainer():
         
         return reward
     
-    def train(self, val_data, num_iterations=10, save_every=100, initial_seed=42) -> AutoModelForSeq2SeqLM:
+    def train(self, val_data, num_iterations=10, save_every=100, initial_seed=SEED) -> AutoModelForSeq2SeqLM:
         """
         This is the main ES training loop.
         
@@ -762,6 +761,10 @@ def main(use_lora=True, learning_rate=None, base_output_dir="/FLAN-T5-Jevi-Waugh
     print(f"Learning rate: {lr}")
     print(f"Output directory: {output_dir}")
     
+    # trainer = ESTrainer(
+    #     model_name="google/flan-t5-base",
+    #     output_dir=output_dir
+    # )
     # Create trainer
     print("\n6. Creating trainer...")
     trainer = BioTrainer(
@@ -777,6 +780,7 @@ def main(use_lora=True, learning_rate=None, base_output_dir="/FLAN-T5-Jevi-Waugh
         # Enable checkpoint saving
         save_checkpoints=True  
     )
+    
     
     # Train and Save model
     print("Starting training")
