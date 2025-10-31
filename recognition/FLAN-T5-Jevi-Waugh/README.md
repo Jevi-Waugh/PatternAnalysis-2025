@@ -320,6 +320,39 @@ lora_config = LoraConfig(
 - **Speedup**: 4-11× faster per iteration than gradient-based training
 
 ### Training Procedure
+The training pipeline follows a systematic multi-stage process:
+
+#### Stage 1: Dataset Preparation
+1. Load dataset from Hugging Face Hub from dataset
+2. Apply train/validation/test splits
+
+#### Stage 2: Tokenisation
+1. Initialise FLAN-T5 tokeniser
+2. Apply task-specific prefix to inputs
+3. Tokenise inputs (max 512 tokens) and targets (max 256 tokens)
+4. Create data collator for dynamic padding
+
+#### Stage 3: Model set up
+1. Load pre-trained FLAN-T5 checkpoint
+2. **For LoRA**: Apply LoRA configuration and freeze base weights
+3. **For FFT**: Ensure all parameters require gradients
+4. Move model to GPU
+
+#### Stage 4: Training Configuration
+1. Configure training arguments 
+2. Initialise optimiser (AdamW with weight decay)
+3. Set up learning rate scheduler (linear warmup + decay)
+4. Configure mixed-precision training (BFloat16)
+
+#### Stage 5: Training Loop
+1. Manual training loop
+
+#### Stage 6: Final Evaluation and Saving 
+1. Load best checkpoint
+2. Evaluate on validation set
+3. Generate sample predictions
+4. Save final model and training curves
+
 
 <!-- we put this inside for now -->
 ### Driver script via Command Line interface
