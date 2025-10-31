@@ -6,6 +6,11 @@ This project investigates the full fine tuning of Google's FLAN-T5 models (small
 
 This comparative analysis aims to evaluate the trade-offs between compute and model performance for domain-specific text especifically summarisation texts. 
 
+## Table of Contents
+---
+
+## Introduction
+
 ## Directory Structure
 
 ```
@@ -55,6 +60,58 @@ This comparative analysis aims to evaluate the trade-offs between compute and mo
 └── 
 
 ```
+## Algorithms
+We compare three fine-tuning paradigms:
+
+## Dataset
+
+### Dataset Information
+
+### Dataset Statistics
+
+### Data Structure
+
+### Preprocessing and Tokenisation
+
+## Evolution Strategies (ES) Algorithm
+### Overview
+### What is Evolution Strategies?
+### Why is ES being used for LLM Fine-Tuning?
+### Implementation Details
+### ES Algorithm
+
+## Models and Architectures
+### FLAN-T5 Architecture
+### Model types
+#### 1. FLAN-T5-Small
+#### 2. FLAN-T5-Base
+
+### Parameter Comparison: Full Fine-Tuning vs LoRA
+
+### Fine-tuning in models?
+#### Full Fine-Tuning (FFT)
+#### LoRA Fine-Tuning (PEFT)
+
+## LoRA and Mathematics behind it
+### Concept
+### Mathematical Formulation
+### Forward Pass Computation
+### Parameter Reduction
+### LoRA details
+### LoRA Configuration in This Project for summaries
+### Advantages of LoRA
+### Tradeoffs and Disadvantages of LoRA
+
+
+
+## Fine-Tuning Methods
+### Full Fine-Tuning (FFT)
+### LoRA Fine-Tuning 
+(Parameter-Efficient Fine-Tuning)
+
+## Comparison Table
+lOrA vs FFT
+
 
 # References
 * Hugging Face
