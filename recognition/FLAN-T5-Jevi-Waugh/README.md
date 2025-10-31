@@ -166,6 +166,19 @@ Talk about the primary args and also why bf16 is so crucial and stuff
 ### Examples 1,2,3 etc...
 
 
+
+## Project Access
+### CUDA, GPU and Google Collab
+### Installation Instructions
+### Dataset Access
+
+## Reproducibility
+use my 48829678
+
+### Software Environment
+#### Core Dependencies
+#### Supporting Libraries
+
 ## Error Analysis
 ### Common Error Patterns in LLM Summarisation
 
@@ -176,30 +189,83 @@ Talk about the primary args and also why bf16 is so crucial and stuff
 ### 5. Terminology Leakage
 
 
-## Reproducibility
-use my 48829678
+## References
+
+### Main Literature
+
+1. **FLAN-T5 Model**:
+   - Chung, H. W., Hou, L., Longpre, S., Zoph, B., Tay, Y., Fedus, W., ... & Wei, J. (2022). *Scaling instruction-finetuned language models*. arXiv preprint arXiv:2210.11416.
+   - [Link to paper](https://arxiv.org/abs/2210.11416)
+2. **T5 Original Architecture**:
+   - Raffel, C., Shazeer, N., Roberts, A., Lee, K., Narang, S., Matena, M., ... & Liu, P. J. (2020). *Exploring the limits of transfer learning with a unified text-to-text transformer*. Journal of Machine Learning Research, 21(140), 1-67.
+   - [Link to paper](https://arxiv.org/abs/1910.10683)
+3. **LoRA (Low-Rank Adaptation)**:
+   - Hu, E. J., Shen, Y., Wallis, P., Allen-Zhu, Z., Li, Y., Wang, S., ... & Chen, W. (2021). *LoRA: Low-Rank Adaptation of Large Language Models*. arXiv preprint arXiv:2106.09685.
+   - [Link to paper](https://arxiv.org/abs/2106.09685)
+
+4. **Evolution Strategies**:
+   - Salimans, T., Ho, J., Chen, X., Sidor, S., & Sutskever, I. (2017). *Evolution strategies as a scalable alternative to reinforcement learning*. arXiv preprint arXiv:1703.03864.
+   - [Link to paper](https://arxiv.org/abs/1703.03864)
+
+5. **ROUGE Evaluation Metric**:
+   - Lin, C. Y. (2004). *ROUGE: A package for automatic evaluation of summaries*. In Text summarization branches out (pp. 74-81).
+   - [Link to paper](https://aclanthology.org/W04-1013/)
+
+---
+
+### Software Documentation
+
+6. **Hugging Face Transformers**:
+   - [Transformers Documentation](https://huggingface.co/docs/transformers/)
+   - [FLAN-T5 Model Card](https://huggingface.co/google/flan-t5-base)
+   - [Summarisation Task Guide](https://huggingface.co/docs/transformers/en/tasks/summarization)
+
+7. **Hugging Face PEFT Library**:
+   - [PEFT Documentation](https://huggingface.co/docs/peft/)
+
+8. **Hugging Face Datasets**:
+   - [Datasets Documentation](https://huggingface.co/docs/datasets/)
+   - [BioLaySumm Dataset](https://huggingface.co/datasets/BioLaySumm/BioLaySumm2025-LaymanRRG-opensource-track)
+
+9. **PyTorch**:
+   - [PyTorch Documentation](https://pytorch.org/docs/stable/index.html)
+   - [Mixed Precision Training](https://pytorch.org/docs/stable/amp.html)
+
+---
+
+### Domain-Specific Resources
+
+10. **Medical Text Summarisation**:
+    - [BioLaySumm 2025](https://biolaysumm.org/)
 
 
-### Software Environment
+11. **Parameter-Efficient Fine-Tuning (PEFT) Survey**:
+    - Lialin, V., Deshpande, V., & Rumshisky, A. (2023). *Scaling Down to Scale Up: A Guide to Parameter-Efficient Fine-Tuning*. arXiv preprint arXiv:2303.15647.
+    - [Link to paper](https://arxiv.org/abs/2303.15647)
 
-#### Core Dependencies
-#### Supporting Libraries
+---
 
+### Additional References
 
+12. **IBM LoRA Overview**:
+    - [IBM - What is LoRA?](https://www.ibm.com/think/topics/lora)
 
+---
 
+### Citation for This Work
 
+If you use this code or methodology in your research, please cite:
 
+```bibtex
+@misc{waugh2025flan_t5_lora_biolaysumm,
+  author = {Waugh, Jevi},
+  title = {Fine-Tuning FLAN-T5 using Full Fine-Tuning and LoRA for BioLaySumm},
+  year = {2025},
+  publisher = {GitHub},
+  howpublished = {}
+}
+```
 
+---
 
-
-
-
-
-
-
-# References
-* Hugging Face
-https://huggingface.co/docs/transformers/en/tasks/summarization
-*IBM
-https://www.ibm.com/think/topics/lora
+**End of README**
