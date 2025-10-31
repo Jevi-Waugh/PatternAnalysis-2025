@@ -171,6 +171,7 @@ FLAN-T5 (Fine-tuned Language Net - Text-to-Text Transfer Transformer version 5) 
 ### Model types
 FLAN-T5 is an instruction-tuned version of the T5 model. The architecture of the vanilla T5 model is shown below to showcase some of its achitectural systems.
 ![T5](outputs/T5.jpg)
+[Attention Is All You Need](https://arxiv.org/pdf/1706.03762)
 #### 1. FLAN-T5-Small
 - **Parameters**: 76,961,152 (77 Million)
 - **Attention Heads**: 8
@@ -318,10 +319,10 @@ lora_config = LoraConfig(
 
 | Model | Strategy | Epochs | Batch Size | Training Time | GPU Utilisation |
 |-------|----------|--------------|------------|---------------|-----------------|
-| FLAN-T5-Small | Full Fine-Tuning | 4 | 16 | ~ hours | ~85% |
-| FLAN-T5-Small | LoRA | 4 | 16 | ~ hours | ~60% |
-| FLAN-T5-Base | Full Fine-Tuning | 4* (3) | 10 | ~ hours | ~95% |
-| FLAN-T5-Base | LoRA | 4 | 10 | ~ hours | ~75% |
+| FLAN-T5-Small | Full Fine-Tuning | 4 | 16 | ~ 1.38 hours | ~85% |
+| FLAN-T5-Small | LoRA | 4 | 16 | ~ 1.9 hours | ~60% |
+| FLAN-T5-Base | Full Fine-Tuning | 4* (3) | 10 | ~ 3.3 hours | ~95% |
+| FLAN-T5-Base | LoRA | 4 | 10 | ~ 4.18 hours | ~75% |
 | FLAN-T5-Base | Evolution Strategies | 15 | 10 (pop) | **~45 minutes** | ~70% |
 
 *Interrupted due to Colab compute limits.
@@ -457,7 +458,7 @@ Higher ROUGE scores indicate better summary in terms of quality. Scores range fr
 | 3 | 0.2131 | 0.1716 | 0.6974 | 0.5010 | 0.6411 | 0.6411 | 35.20 |
 | **4** | **0.2045** | **0.1656** | **0.7047** | **0.5084** | **0.6493** | **0.6493** | **35.40** |
 
-**Training Time**: 
+**Training Time**: 1.38 hrs
 ### Full Fine-Tuning Training (FLAN-T5-Small)
 ![fft small](outputs/small_model_fft/training_curves.png)
 
@@ -471,7 +472,7 @@ Higher ROUGE scores indicate better summary in terms of quality. Scores range fr
 | 3 | 1.5764 | 1.4946 | 0.7119 | 0.5199 | 0.6585 | 0.6587 | 35.02 |
 | **4** | **1.5640** | **1.4571** | **0.7149** | **0.5243** | **0.6619** | **0.6620** | **35.40** |
 
-**Training Time**:
+**Training Time**: 1.9
 
 **Note**: Higher training/validation loss values are expected with LoRA due to different loss scaling and limited parameter updates, but ROUGE scores remain competitive.
 ### LoRA Training (FLAN-T5-Small)
@@ -493,7 +494,7 @@ Higher ROUGE scores indicate better summary in terms of quality. Scores range fr
 
 *Training interrupted at 24% of Epoch 4 due to Colab session timeout.
 
-**Training Time**: 
+**Training Time**: 3.3 hrs
 ### Full Fine-Tuning Training (FLAN-T5-Base)
 ![fft base](outputs/output_full_finetuning_base/training_curves.png)
 
@@ -506,7 +507,7 @@ Higher ROUGE scores indicate better summary in terms of quality. Scores range fr
 | 3 | 0.1451 | 0.1177 | 0.7427 | 0.5647 | 0.6940 | 0.6939 | 36.56 |
 | **4** | **0.1375** | **0.1147** | **0.7480** | **0.5728** | **0.6999** | **0.7000** | **35.95** |
 
-**Training Time**: 
+**Training Time**: 4.18 hrs
 
 ### LoRA Training (FLAN-T5-base)
 ![lora base](outputs/output_lora_base/training_curves.png)
@@ -556,8 +557,8 @@ Higher ROUGE scores indicate better summary in terms of quality. Scores range fr
 
 | Strategy | Parameters | GPU Time | ROUGE-1 | ROUGE-2 | ROUGE-L | ROUGE-Lsum |
 |----------|------------|----------|---------|---------|---------|------------|
-| **Full Fine-Tuning** | 76,961,152 |  | 0.7047 | 0.5084 | 0.6493 | 0.6493 |
-| **LoRA** | 1,769,472 |  | **0.7149** | **0.5243** | **0.6619** | **0.6620** |
+| **Full Fine-Tuning** | 76,961,152 | 1.38 hrs | 0.7047 | 0.5084 | 0.6493 | 0.6493 |
+| **LoRA** | 1,769,472 | 1.9 hrs | **0.7149** | **0.5243** | **0.6619** | **0.6620** |
 
 **Key Findings:**
 - LoRA achieves **slightly higher ROUGE scores** (+1.0-1.6%) with 97.7% fewer parameters
@@ -567,8 +568,8 @@ Higher ROUGE scores indicate better summary in terms of quality. Scores range fr
 
 | Model | Parameters | GPU Time | ROUGE-1 | ROUGE-2 | ROUGE-L | ROUGE-Lsum |
 |-------|------------|----------|---------|---------|---------|------------|
-| **FLAN-T5-Small** | 1.8M (2.25%) | ~272 min | 0.7149 | 0.5243 | 0.6619 | 0.6620 |
-| **FLAN-T5-Base** | 7.1M (2.78%) | ~510 min | **0.7480** | **0.5728** | **0.6999** | **0.7000** |
+| **FLAN-T5-Small** | 1.8M (2.25%) | 1.9 hrs | 0.7149 | 0.5243 | 0.6619 | 0.6620 |
+| **FLAN-T5-Base** | 7.1M (2.78%) | 4.18 hrs | **0.7480** | **0.5728** | **0.6999** | **0.7000** |
 
 **Key Findings:**
 - Base model achieves **+3.3-4.9% ROUGE improvement** over small model
@@ -579,8 +580,8 @@ Higher ROUGE scores indicate better summary in terms of quality. Scores range fr
 
 | Strategy | Trainable Params | Training Time | Best ROUGE-1 | Convergence | Stability |
 |----------|------------------|---------------|--------------|-------------|-----------|
-| **Full Fine-Tuning** | 247.6M (100%) | ~6 hrs (stopped early) | 0.7416* (Epoch 3) | Fast | Stable |
-| **LoRA** | 7.1M (2.78%) | ~8.5 hrs (complete) | **0.7480** (Epoch 4) | Fast | Stable |
+| **Full Fine-Tuning** | 247.6M (100%) | 3.3 hrs| 0.7416* (Epoch 3) | Fast | Stable |
+| **LoRA** | 7.1M (2.78%) | 4.18hrs | **0.7480** (Epoch 4) | Fast | Stable |
 | **Evolution Strategies** | 247.6M (100%) | ~45 min (15 iter) | 0.2181 (Iter 9) | slow | High variance |
 
 - Full fine-tuning likely would have improved further if completed
@@ -782,23 +783,20 @@ typing-extensions>=4.8.0
 ### Main Literature
 
 1. **FLAN-T5 Model**:
-   - Chung, H. W., Hou, L., Longpre, S., Zoph, B., Tay, Y., Fedus, W., ... & Wei, J. (2022). *Scaling instruction-finetuned language models*. arXiv preprint arXiv:2210.11416.
-   - [Link to paper](https://arxiv.org/abs/2210.11416)
+   - [Chung, H. W., Hou, L., Longpre, S., Zoph, B., Tay, Y., Fedus, W., ... & Wei, J. (2022). *Scaling instruction-finetuned language models*. arXiv preprint arXiv:2210.11416.](https://arxiv.org/abs/2210.11416)
 2. **T5 Original Architecture**:
-   - Raffel, C., Shazeer, N., Roberts, A., Lee, K., Narang, S., Matena, M., ... & Liu, P. J. (2020). *Exploring the limits of transfer learning with a unified text-to-text transformer*. Journal of Machine Learning Research, 21(140), 1-67.
-   - [Link to paper](https://arxiv.org/abs/1910.10683)
+   - [Raffel, C., Shazeer, N., Roberts, A., Lee, K., Narang, S., Matena, M., ... & Liu, P. J. (2020). *Exploring the limits of transfer learning with a unified text-to-text transformer*. Journal of Machine Learning Research, 21(140), 1-67.](https://arxiv.org/abs/1910.10683)
 3. **LoRA (Low-Rank Adaptation)**:
-   - Hu, E. J., Shen, Y., Wallis, P., Allen-Zhu, Z., Li, Y., Wang, S., ... & Chen, W. (2021). *LoRA: Low-Rank Adaptation of Large Language Models*. arXiv preprint arXiv:2106.09685.
-   - [Link to paper](https://arxiv.org/abs/2106.09685)
+   - [Hu, E. J., Shen, Y., Wallis, P., Allen-Zhu, Z., Li, Y., Wang, S., ... & Chen, W. (2021). *LoRA: Low-Rank Adaptation of Large Language Models*. arXiv preprint arXiv:2106.09685.](https://arxiv.org/abs/2106.09685)
 
 4. **Evolution Strategies**:
-   - Salimans, T., Ho, J., Chen, X., Sidor, S., & Sutskever, I. (2017). *Evolution strategies as a scalable alternative to reinforcement learning*. arXiv preprint arXiv:1703.03864.
-   - [Link to paper](https://arxiv.org/abs/1703.03864)
+   - [Salimans, T., Ho, J., Chen, X., Sidor, S., & Sutskever, I. (2017). *Evolution strategies as a scalable alternative to reinforcement learning*. arXiv preprint arXiv:1703.03864.](https://arxiv.org/abs/1703.03864)
 
 5. **ROUGE Evaluation Metric**:
-   - Lin, C. Y. (2004). *ROUGE: A package for automatic evaluation of summaries*. In Text summarization branches out (pp. 74-81).
-   - [Link to paper](https://aclanthology.org/W04-1013/)
+   - [Lin, C. Y. (2004). *ROUGE: A package for automatic evaluation of summaries*. In Text summarization branches out (pp. 74-81).](https://aclanthology.org/W04-1013/)
 
+6. Attention Is All You Need
+   - [Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., & Polosukhin, I. (2017). Attention Is All You Need.](https://arxiv.org/pdf/1706.03762)
 ---
 
 ### Software Documentation
@@ -828,15 +826,13 @@ typing-extensions>=4.8.0
 
 
 11. **Parameter-Efficient Fine-Tuning (PEFT) Survey**:
-    - Lialin, V., Deshpande, V., & Rumshisky, A. (2023). *Scaling Down to Scale Up: A Guide to Parameter-Efficient Fine-Tuning*. arXiv preprint arXiv:2303.15647.
-    - [Link to paper](https://arxiv.org/abs/2303.15647)
+    - [Lialin, V., Deshpande, V., & Rumshisky, A. (2023). *Scaling Down to Scale Up: A Guide to Parameter-Efficient Fine-Tuning*. arXiv preprint arXiv:2303.15647.](https://arxiv.org/abs/2303.15647)
 
 ---
 
 ### Additional References
 
-12. **IBM LoRA Overview**:
-    - [IBM - What is LoRA?](https://www.ibm.com/think/topics/lora)
+12. [**IBM LoRA Overview**:](https://www.ibm.com/think/topics/lora)
 
 ---
 
