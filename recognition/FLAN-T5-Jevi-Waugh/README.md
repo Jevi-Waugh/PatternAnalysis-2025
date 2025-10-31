@@ -7,6 +7,23 @@ This project investigates the full fine tuning of Google's FLAN-T5 models (small
 This comparative analysis aims to evaluate the trade-offs between compute and model performance for domain-specific text especifically summarisation texts. 
 
 ## Table of Contents
+1. [Introduction](#introduction)
+2. [Algorithms](#algorithms)
+3. [Dataset](#dataset)
+4. [Evolution Strategies (ES) Algorithm](#evolution-strategies-es-algorithm)
+5. [Models and Architectures](#models-and-architectures)
+6. [LoRA Method and Mathematics](#lora-method-and-mathematics)
+7. [Fine-Tuning Strategies](#fine-tuning-methods)
+8. [Hardware Configuration](#hardware-configuration)
+9. [Training Procedure](#training-procedure)
+10. [Results and Evaluation](#results-and-evaluation)
+11. [Visualisations and Plots](#visualisations-and-plots)
+12. [Inference and Prediction Examples](#prediction-examples)
+13. [Comparative analysis](#comparative-analysis)
+14. [Error Analysis](#error-analysis)
+15. [Reproducibility](#reproducibility)
+16. [Access to project](#project-access)
+17. [References](#references)
 ---
 
 ## Introduction
@@ -145,7 +162,7 @@ Talk about the primary args and also why bf16 is so crucial and stuff
 
 
 ### Winning Model Performance
-## Visualizations and Plots
+## Visualisations and Plots
 
 ### Plot 1: Evolution Strategies Training (FLAN-T5-Base)
 
