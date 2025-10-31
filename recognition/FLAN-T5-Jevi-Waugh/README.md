@@ -140,12 +140,12 @@ The preprocessing is very much handled by the `BioDatasetLoader` class in `datas
 
 ## Models and Architectures
 ### FLAN-T5 Architecture
-FLAN-T5 (Fine-tuned Language Net - Text-to-Text Transfer Transformer version 5) is an encoder-decoder transformer model developed by Google. It basically builds on the original T5 acrhitecture with extensive instruction fine-tuning.
+FLAN-T5 (Fine-tuned Language Net - Text-to-Text Transfer Transformer version 5) is an encoder-decoder transformer model developed by Google. It basically builds on the original T5 architecture with extensive instruction fine-tuning.
 **Main Architectural features:**
 - **Encoder-Decoder Structure**: Separate encoder for input processing and then it has its own decoder for generative outputs.
 - **Multi-Head Attention**: 6-12 heads depending on the model size
 - **Feed-Forward Networks**: Gated linear units (GLU) in each layer
-- **Relative Position Embeddings**: Improves generalization to varying sequence lengths
+- **Relative Position Embeddings**: It improves generalisation to varying sequence lengths.
 
 ### Model types
 #### 1. FLAN-T5-Small
@@ -177,8 +177,21 @@ FLAN-T5 (Fine-tuned Language Net - Text-to-Text Transfer Transformer version 5) 
 - Training memory in terms of gradients is reduced by 95-98%
 
 ### Fine-tuning in models?
+
 #### Full Fine-Tuning (FFT)
+Updates **all parameters** including:
+- Query (Q), Key (K), Value (V) projection matrices
+- Feed-forward network weights (wi, wo)
+- Output projection (O) matrices
+- Layer normalisation parameters
+
 #### LoRA Fine-Tuning (PEFT)
+Updates **only low-rank adapter matrices** in:
+- All other parameters stay frozenx
+- Target modules: `["q", "v", "k", "o", "wi", "wo"]` (configurable)
+- Typically focuses on attention layers for efficiency
+
+---
 
 ## LoRA and Mathematics behind it
 ### Concept
@@ -187,9 +200,33 @@ FLAN-T5 (Fine-tuned Language Net - Text-to-Text Transfer Transformer version 5) 
 ### Parameter Reduction
 ### LoRA details
 ### LoRA Configuration in This Project for summaries
-### Advantages of LoRA
-### Tradeoffs and Disadvantages of LoRA
 
+```python
+lora_config = LoraConfig(
+    r=16,                          # Rank (small) or 32 (base)
+    target_modules=["q", "v", "k", "o", "wi", "wo"],  # All attention + FFN
+    lora_alpha=32,                 # Scaling: 2×r (small) or 64 (base)
+    bias="none",                   # No bias terms
+    task_type="SEQ_2_SEQ_LM"       # Encoder-decoder task
+    lora_dropout=0.1,              # Dropout on LoRA layers
+)
+```
+### Advantages of LoRA
+**Advantages:**
+- **Modular Adapters**: Easy to swap task-specific adapters
+- **Memory Efficient**: 95-98% reduction in trainable parameters
+- **Faster Training**: Few gradients to compute and store in computational graph
+- **Better Generalisation**: Reduced overfitting on small datasets
+
+
+
+---
+### Tradeoffs and Disadvantages of LoRA
+**Trade-offs:**
+- **Hyperparameter Sensitivity**: Performance depends on choice of $r$ and $\alpha$
+- **Capacity**: Low rank may limit model's adaptation capacity
+- **Module Selection**: Optimal target modules vary by architecture
+- **Training with adapter**: Training may take longer for more adapters due to the rank of matrices and matrix multiplication of the maximum adapter loaded.
 
 
 ## Fine-Tuning Methods
