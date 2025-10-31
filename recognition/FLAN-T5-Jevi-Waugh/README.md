@@ -112,6 +112,91 @@ We compare three fine-tuning paradigms:
 ## Comparison Table
 lOrA vs FFT
 
+## Hyperparameter Settings
+
+### FLAN-T5-Small
+### FLAN-T5-Base
+
+## Hardware Configuration
+The env it was trained on
+
+## Training 
+### Training Time Summary
+### Training Procedure
+
+<!-- we put this inside for now -->
+### Driver script via Command Line interface
+#### Training Arguments
+Talk about the primary args and also why bf16 is so crucial and stuff
+
+## Results and Evaluation
+
+### Evaluation Metrics
+
+### Results Summary
+#### FLAN-T5-Small
+#### FLAN-T5-Base
+
+### Comparative Analysis
+
+#### Strategy Comparison (FLAN-T5-Small, 4 Epochs)
+#### Model Size Comparison (LoRA Strategy, 4 Epochs)
+#### Training Strategy Comparison (FLAN-T5-Base)
+
+
+### Winning Model Performance
+## Visualizations and Plots
+
+### Plot 1: Evolution Strategies Training (FLAN-T5-Base)
+
+### Plot 2: Full Fine-Tuning Training (FLAN-T5-Base)
+
+### Plot 3: Full Fine-Tuning Training (FLAN-T5-Small)
+
+### Plot 4: LoRA Training (FLAN-T5-Small)
+
+### Plot 5: LoRA Training (FLAN-T5-base)
+
+### Plot 6: LoRA vs Full Fine-Tuning Comparison (3 Epochs)
+
+### Expected Observations
+
+## Prediction Examples
+### How to Generate Predictions
+### Examples 1,2,3 etc...
+
+
+## Error Analysis
+### Common Error Patterns in LLM Summarisation
+
+### 1. Hallucinations
+### 2. Over-Simplification (SOMETIMES)
+### 3. Drift
+### 4. Repetition
+### 5. Terminology Leakage
+
+
+## Reproducibility
+use my 48829678
+
+
+### Software Environment
+
+#### Core Dependencies
+#### Supporting Libraries
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # References
 * Hugging Face
