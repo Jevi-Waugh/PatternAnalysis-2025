@@ -356,9 +356,68 @@ The training pipeline follows a systematic multi-stage process:
 
 <!-- we put this inside for now -->
 ### Driver script via Command Line interface
-#### Training Arguments
-Talk about the primary args and also why bf16 is so crucial and stuff
+### Command-Line Interface
 
+The training scripts support flexible command-line arguments for easy experimentation:
+
+#### Training Script (`train.py`)
+
+```bash
+# Full Fine-Tuning (FLAN-T5-Small)
+python3 train.py 
+
+# LoRA (FLAN-T5-Small) modify main
+main(use_lora=True, base_output_dir="./outputs/output_full_finetuning_small"):
+python3 train.py 
+
+# Evolution Strategies Training - modify main
+trainer = ESTrainer(
+        model_name="google/flan-t5-base",
+        output_dir=./outputs/output_es_flan_base
+    )
+python train.py 
+```
+
+#### Prediction Script (`predict.py`)
+
+```bash
+# Generate predictions from checkpoint
+python predict.py 
+    --model_path outputs/output_lora_base/final_model 
+    --is_lora 
+    --num_examples 5 
+    --calculate_rouge
+```
+
+---
+
+### Key Training Arguments
+
+```python
+Seq2SeqTrainingArguments(
+    output_dir="./outputs",
+    learning_rate=2e-5,                # AdamW learning rate
+    evaluation_strategy="epoch",       # Evaluate after each epoch
+    weight_decay=0.01,                 # L2 regularization
+    num_train_epochs=4,                # Total epochs
+    per_device_eval_batch_size=16,    # Evaluation batch size
+    save_strategy="epoch",             # Save after each epoch
+    save_total_limit=2,                # Keep only 2 best checkpoints
+    per_device_train_batch_size=16,   # Training batch size
+    metric_for_best_model="rouge1",   # Selection criterion
+    load_best_model_at_end=True,      # Load best for final eval
+    greater_is_better=True,
+    bf16=True,                         # Use BFloat16 mixed precision
+    fp16=False,                        # Use FP32 (BF16 used instead)
+    gradient_accumulation_steps=1,     # Accumulate gradients
+    logging_steps=100,                 # Log every N steps
+    warmup_steps=500,                  # LR warmup steps
+    generation_max_length=256,         # Max tokens to generate
+    predict_with_generate=True,        # Use generation for eval
+)
+```
+
+---
 ## Results and Evaluation
 
 ### Evaluation Metrics
