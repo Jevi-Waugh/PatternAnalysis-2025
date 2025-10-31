@@ -235,12 +235,58 @@ lora_config = LoraConfig(
 (Parameter-Efficient Fine-Tuning)
 
 ## Comparison Table
-lOrA vs FFT
+| Aspect | Full Fine-Tuning | LoRA Fine-Tuning |
+|--------|------------------|------------------|
+| **Trainable Parameters** | 100% (77M / 248M) | 2.25% / 2.78% (1.8M / 7.1M) |
+| **GPU Memory (Training)** | ~16-24 GB | ~8-12 GB |
+| **Training Speed** | Baseline | Baseline |
+| **Convergence** | Slower (more parameters) | Faster (fewer parameters) |
+| **Overfitting Risk** | Higher | Lower |
+| **Best Performance** | baseline | slightly higher (~1-2% ROUGE) |
+| **Flexibility** | Maximum | Limited by rank |
+| **Deployment** | Single large model | Lightweight adapters |
+
+---
 
 ## Hyperparameter Settings
 
 ### FLAN-T5-Small
+
+| Hyperparameter | Full Fine-Tuning | LoRA |
+|----------------|------------------|------|
+| Learning Rate | 4e-5 | 3e-4 |
+| Batch Size | 16 | 16 |
+| Epochs | 4 | 4 |
+| Warmup Steps | 500 | 500 |
+| Weight Decay | 0.01 | 0.01 |
+| Max Input Length | 512 | 512 |
+| Max Target Length | 256 | 256 |
+| LoRA Rank (r) | N/A | 16 |
+| LoRA Alpha | N/A | 32 |
+| LoRA Dropout | N/A | 0.1 |
+
 ### FLAN-T5-Base
+
+| Hyperparameter | Full Fine-Tuning | LoRA |
+|----------------|------------------|------|
+| Learning Rate | 4e-5 | 3e-4 |
+| Batch Size | 10 | 10 |
+| Epochs | 4 (stopped at 3) | 4 |
+| Warmup Steps | 500 | 500 |
+| Weight Decay | 0.01 | 0.01 |
+| Max Input Length | 512 | 512 |
+| Max Target Length | 256 | 256 |
+| LoRA Rank (r) | N/A | 32 |
+| LoRA Alpha | N/A | 64 |
+| LoRA Dropout | N/A | 0.1 |
+| LoRA Modules | N/A | `["q", "v", "k", "o", "wi", "wo"]` |
+
+**Notes:**
+- A higher learning rate was used for LoRA due to smaller parameter space.
+- Batch sizes were constrained by GPU memory limits
+- Full fine-tuning of base model stopped early due compute contraints in Google collab.
+
+---
 
 ## Hardware Configuration
 The env it was trained on
