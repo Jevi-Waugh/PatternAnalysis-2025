@@ -1,12 +1,14 @@
 #  Fine tuning FLAN-T5 to translate expert radiology reports into layperson summaries  using the BioLaySumm dataset
 
-Author: Jevi Schallum Waugh
+Author: Jevi Waugh
 ## Overview 
 This project investigates the full fine tuning of Google's FLAN-T5 models (small and base) for the task of translating expert radiology reports into an easy laman summary using the BioLaySumm 2025 dataset. There were three main approaches although we focus heavily on two of them. We compared Full fine tuning where all parameters were updated vs LoRA adapter which is a parameter efficient fine tuning methoc (PEFT), updating only a small subset of adpater weights. 
 The third method is an optimisation technique inspired by biological evolution that optimises model parameters without computing gradients, which will be exploreda and trained, but not in its entirety.
 
 This comparative analysis aims to evaluate the trade-offs between compute and model performance for domain-specific text especifically summarisation texts. 
-
+The architecture of the vanilla T5 model is shown below to showcase some of its achitectural systems as FLAN-T5 is just a fine-tuned version.
+![T5](outputs/T5.jpg)
+[Attention Is All You Need](https://arxiv.org/pdf/1706.03762)
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Algorithms](#algorithms)
@@ -32,7 +34,7 @@ This project addresses the need to develop automated systems that can translate 
 
 
 ## Directory Structure
-
+Notes that model files are hidden for now.
 ```
 .
 ├── README.md                          # Project documentation
@@ -169,9 +171,7 @@ FLAN-T5 (Fine-tuned Language Net - Text-to-Text Transfer Transformer version 5) 
 - **Relative Position Embeddings**: It improves generalisation to varying sequence lengths.
 
 ### Model types
-FLAN-T5 is an instruction-tuned version of the T5 model. The architecture of the vanilla T5 model is shown below to showcase some of its achitectural systems.
-![T5](outputs/T5.jpg)
-[Attention Is All You Need](https://arxiv.org/pdf/1706.03762)
+FLAN-T5 is an instruction-tuned version of the T5 model. 
 #### 1. FLAN-T5-Small
 - **Parameters**: 76,961,152 (77 Million)
 - **Attention Heads**: 8
