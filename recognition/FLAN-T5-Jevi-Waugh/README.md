@@ -9,8 +9,13 @@ This comparative analysis aims to evaluate the trade-offs between compute and mo
 The architecture of the vanilla T5 model is shown below to showcase some of its achitectural systems as FLAN-T5 is just a fine-tuned version.
 
 ---
+
 ![T5](outputs/T5.jpg)
 [Attention Is All You Need](https://arxiv.org/pdf/1706.03762)
+
+---
+
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Algorithms](#algorithms)
