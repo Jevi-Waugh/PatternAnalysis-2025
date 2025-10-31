@@ -13,7 +13,7 @@ This comparative analysis aims to evaluate the trade-offs between compute and mo
 3. [Dataset](#dataset)
 4. [Evolution Strategies (ES) Algorithm](#evolution-strategies-es-algorithm)
 5. [Models and Architectures](#models-and-architectures)
-6. [LoRA Method and Mathematics](#lora-method-and-mathematics)
+6. [LoRA Method and Mathematics](#lora-details)
 7. [Fine-Tuning Strategies](#fine-tuning-methods)
 8. [Hardware Configuration](#hardware-configuration)
 9. [Training Procedure](#training-procedure)
@@ -81,11 +81,13 @@ This project addresses the need to develop automated systems that can translate 
 
 ```
 ## Algorithms
-We compare three fine-tuning paradigms:
+We compare 2 fine-tuning and 1 Evolution paradigms :
 
 1. **Full Fine-Tuning (FFT)**: Traditional fine-tuningapproach updating all ~77M (small) or ~248M (base) parameters.
 
 2. **Low-Rank Adaptation (LoRA)**: Parameter-efficient approach updating only ~1.8M (small) or ~7.1M (base) parameters (~2.2-2.8% of total parameters) (This will be specific in LoRA training in later sections)
+
+3. **Evolution Strategies** is a black-box optimisation technique inspired by biological evolution that optimises model parameters without computing gradients.
 
 The training was initially performed on **Google Colab** with GPU acceleration (Nvidea A100).
 ## Dataset
@@ -134,10 +136,28 @@ The preprocessing is very much handled by the `BioDatasetLoader` class in `datas
 
 ## Evolution Strategies (ES) Algorithm
 ### Overview
-### What is Evolution Strategies?
+Evolution Strategies is a derivative-free optimisation method that treats model parameters as a population of candidate solutions. Unlike traditional backpropagation:
+
+- **No gradients required**: ES estimates fitness (loss) by directly evaluating perturbed parameters
+- **Natural gradient approximation**: The ES gradient is computed by weighting parameter perturbations by their fitness
+- **Population-based**: Multiple parameter variants are evaluated in parallel
 ### Why is ES being used for LLM Fine-Tuning?
-### Implementation Details
-### ES Algorithm
+1. **Robustness**: ES can escape sharp local minima that trap gradient descent
+2. **Parallelisation**: Each fitness evaluation is independent, enabling massive parallelisation
+3. **Gradient-free**: Useful when gradients are noisy or difficult to compute
+4. **Exploration**: Natural exploration of parameter space through random perturbations
+
+The core ES update rule can be expressed as:
+
+$$\theta_{t+1} = \theta_t + \alpha \frac{1}{n\sigma} \sum_{i=1}^{n} F(\theta_t + \sigma \epsilon_i) \epsilon_i$$
+
+Where:
+- $\theta_t$ represents model parameters at iteration $t$
+- $\alpha$ is the learning rate
+- $\sigma$ is the noise standard deviation
+- $\epsilon_i \sim \mathcal{N}(0, I)$ are random perturbations
+- $F(\cdot)$ is the fitness function (negative loss)
+- $n$ is the population size
 
 ## Models and Architectures
 ### FLAN-T5 Architecture
@@ -149,6 +169,8 @@ FLAN-T5 (Fine-tuned Language Net - Text-to-Text Transfer Transformer version 5) 
 - **Relative Position Embeddings**: It improves generalisation to varying sequence lengths.
 
 ### Model types
+FLAN-T5 is an instruction-tuned version of the T5 model. The architecture of the vanilla T5 model is shown below to showcase some of its achitectural systems.
+![T5](outputs/T5.jpg)
 #### 1. FLAN-T5-Small
 - **Parameters**: 76,961,152 (77 Million)
 - **Attention Heads**: 8
@@ -188,18 +210,17 @@ Updates **all parameters** including:
 
 #### LoRA Fine-Tuning (PEFT)
 Updates **only low-rank adapter matrices** in:
-- All other parameters stay frozenx
+- All other parameters stay frozen
 - Target modules: `["q", "v", "k", "o", "wi", "wo"]` (configurable)
 - Typically focuses on attention layers for efficiency
 
 ---
 
-## LoRA and Mathematics behind it
-### Concept
-### Mathematical Formulation
-### Forward Pass Computation
-### Parameter Reduction
-### LoRA details
+## LoRA concept
+**Low-Rank Adaptation (LoRA)** is a parameter-efficient method that dramatically reduces the number of trainable parameters while maintaining competitive performance. The key insight is that the weight updates during fine-tuning lie in a low-dimensional subspace.
+![lora image](outputs/lora.png)
+[IBM - What is LoRA?](https://www.ibm.com/think/topics/lora)
+
 ### LoRA Configuration in This Project for summaries
 
 ```python
@@ -226,11 +247,6 @@ lora_config = LoraConfig(
 - **Capacity**: Low rank may limit model's adaptation capacity
 - **Module Selection**: Optimal target modules vary by architecture
 - **Training with adapter**: Training may take longer for more adapters due to the rank of matrices and matrix multiplication of the maximum adapter loaded.
-
-## Fine-Tuning Methods
-### Full Fine-Tuning (FFT)
-### LoRA Fine-Tuning 
-(Parameter-Efficient Fine-Tuning)
 
 ## Comparison Table
 | Aspect | Full Fine-Tuning | LoRA Fine-Tuning |
@@ -354,7 +370,7 @@ The training pipeline follows a systematic multi-stage process:
 
 <!-- we put this inside for now -->
 ### Driver script via Command Line interface
-### Command-Line Interface
+
 
 The training scripts support flexible command-line arguments for easy experimentation:
 
@@ -396,7 +412,7 @@ Seq2SeqTrainingArguments(
     output_dir="./outputs",
     learning_rate=2e-5,                # AdamW learning rate
     evaluation_strategy="epoch",       # Evaluate after each epoch
-    weight_decay=0.01,                 # L2 regularization
+    weight_decay=0.01,                 # L2 regularisation
     num_train_epochs=4,                # Total epochs
     per_device_eval_batch_size=16,    # Evaluation batch size
     save_strategy="epoch",             # Save after each epoch
@@ -606,77 +622,76 @@ This section demonstrates the model's performance on real radiology reports from
 ### Example 1
 
 **Input (Expert Radiology Report)**:
-```
+
 The chest shows significant air trapping. Bilateral apical chronic changes are present. Dorsal kyphosis is noted. No evidence of pneumothorax.
-```
+
 
 **Model Prediction (Generated Layperson Summary)**:
-```
+
 The chest x-ray shows that there is a lot of air trapped in the lungs. There are long-term changes at the top of both lungs. The upper back is curved outward. There is no sign of air outside the lungs.
-```
+
 
 **Reference (Ground Truth Layperson Summary)**:
-```
+
 The chest shows a large amount of trapped air. There are long-term changes at the top of both lungs. The upper back is curved outward. There is no sign of air in the space around the lungs.
-```
+
 
 ---
 
 ### Example 2
 
 **Input (Expert Radiology Report)**:
-```
+
 Central venous catheter traversing the left jugular vein with its tip in the superior vena cava. The remainder is unchanged.
-```
+
 
 **Model Prediction (Generated Layperson Summary)**:
-```
+
 A central venous catheter is going through the left jugular vein and its tip is in the superior vena cava. Everything else looks the same as before.
-```
+
 
 **Reference (Ground Truth Layperson Summary)**:
-```
+
 A central venous catheter is going through the left jugular vein and its tip is in the superior vena cava. Everything else is the same as before.
-```
+
 
 ---
 
 ### Example 3
 
 **Input (Expert Radiology Report)**:
-```
+
 Chronic pulmonary changes
-```
+
 
 **Model Prediction (Generated Layperson Summary)**:
-```
+
 Long-term changes in the lungs are seen.
-```
+
 
 **Reference (Ground Truth Layperson Summary)**:
-```
+
 Long-term changes in the lungs are seen.
-```
+
 
 ---
 
 ### Example 4
 
 **Input (Expert Radiology Report)**:
-```
+
 Radiological signs of air trapping, flattened diaphragm, and increased retrosternal space. Calcified pleural plaques at the level of the left diaphragmatic pleura. Loss of volume in the left lung with subpleural linear opacities. Findings are related to chronic inflammatory changes due to asbestos exposure. Review of previous CT scan shows no significant changes compared to the scanogram dated 3/4/2009.
-```
+
 
 **Model Prediction (Generated Layperson Summary)**:
-```
+
 The radiology images show signs of air being trapped in the lungs, the diaphragm is flattened, and there's an increased space behind the breastbone. There are calcified plaques on the left side of the diaphragm lining. The left lung has lost some volume and there are linear opacities near the lung surface. These findings are related to long-term inflammation due to asbestos exposure. Looking at the previous CT scan, there are no significant changes compared to the scanogram dated 3/4/2009.
-```
+
 
 **Reference (Ground Truth Layperson Summary)**:
-```
+
 The X-ray shows signs of trapped air, a flattened muscle under the lungs, and more space behind the breastbone. There are also hardened areas on the lung lining on the left side. The left lung has lost some volume and has some linear shadows near the outer lining. These findings are related to long-term inflammation caused by exposure to asbestos. Looking at the previous CT scan, there are no significant changes compared to the scanogram dated 3/4/2009.
 
-```
 
 ---
 
@@ -706,8 +721,11 @@ There is a calcified granuloma located at the top of the right lung.
 ---
 
 ## Project Access
+
 ### CUDA, GPU and Google Collab
+
 ### Installation Instructions
+
 ### Dataset Access
 To access the dataset, follow the following:
 ```python
@@ -727,16 +745,6 @@ test = BioLoader.test
 val = BioLoader.validation
 
 ```
-
-
-## Error Analysis
-### Common Error Patterns in LLM Summarisation
-
-### 1. Hallucinations
-### 2. Over-Simplification (SOMETIMES)
-### 3. Drift
-### 4. Repetition
-### 5. Terminology Leakage
 
 ## Reproducibility
 ```python
