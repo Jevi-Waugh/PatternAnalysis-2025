@@ -7,6 +7,7 @@ The third method is an optimisation technique inspired by biological evolution t
 
 This comparative analysis aims to evaluate the trade-offs between compute and model performance for domain-specific text especifically summarisation texts. 
 The architecture of the vanilla T5 model is shown below to showcase some of its achitectural systems as FLAN-T5 is just a fine-tuned version.
+
 ![T5](outputs/T5.jpg)
 [Attention Is All You Need](https://arxiv.org/pdf/1706.03762)
 ## Table of Contents
@@ -78,7 +79,9 @@ Notes that model files are hidden for now.
 │   │   └── final_model/
 │   |      
 │   |
-│   └── lora_vs_fft_comparison_3epochs.png  # Comparative plot of LoRA vs FFT
+│   └── lora_vs_fft_comparison_3epochs.png  # Comparative plot of LoRA vs 
+|   |__lora.png
+|   |__T5.jpg
 └── 
 
 ```
