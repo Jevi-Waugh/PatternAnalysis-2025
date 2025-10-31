@@ -27,6 +27,8 @@ This comparative analysis aims to evaluate the trade-offs between compute and mo
 ---
 
 ## Introduction
+This project addresses the need to develop automated systems that can translate experts reports into clear, accessible summaries. This is mainly due to the advanced terminologies present in medical documentation that may overwelm the patient.
+
 
 ## Directory Structure
 
@@ -80,6 +82,11 @@ This comparative analysis aims to evaluate the trade-offs between compute and mo
 ## Algorithms
 We compare three fine-tuning paradigms:
 
+1. **Full Fine-Tuning (FFT)**: Traditional fine-tuningapproach updating all ~77M (small) or ~248M (base) parameters.
+
+2. **Low-Rank Adaptation (LoRA)**: Parameter-efficient approach updating only ~1.8M (small) or ~7.1M (base) parameters (~2.2-2.8% of total parameters) (This will be specific in LoRA training in later sections)
+
+The training was initially performed on **Google Colab** with GPU acceleration (Nvidea A100).
 ## Dataset
 
 ### Dataset Information
