@@ -99,6 +99,7 @@ The training was initially performed on **Google Colab** with GPU acceleration (
 | **Test** | 10,537 |
 | **Total** | 170,991 |
 
+Note: The validation is used primarily for testing, as the testing set does not have the reference for its corresponding radiology_report.
 ### Data Structure of the dataset
 
 Each data point contains:
@@ -218,8 +219,6 @@ lora_config = LoraConfig(
 - **Faster Training**: Few gradients to compute and store in computational graph
 - **Better Generalisation**: Reduced overfitting on small datasets
 
-
-
 ---
 ### Tradeoffs and Disadvantages of LoRA
 **Trade-offs:**
@@ -227,7 +226,6 @@ lora_config = LoraConfig(
 - **Capacity**: Low rank may limit model's adaptation capacity
 - **Module Selection**: Optimal target modules vary by architecture
 - **Training with adapter**: Training may take longer for more adapters due to the rank of matrices and matrix multiplication of the maximum adapter loaded.
-
 
 ## Fine-Tuning Methods
 ### Full Fine-Tuning (FFT)
@@ -581,8 +579,8 @@ This configuration achieves the best balance of:
 Note:  LoRA here takes longer due to the maximum adapater loaded, otherwise it would have taken less time.
 
 ---
-## Visualisations and Plots
 
+## Visualisations and Plots
 ### Plot 1: Evolution Strategies Training (FLAN-T5-Base)
 
 ### Plot 2: Full Fine-Tuning Training (FLAN-T5-Base)
@@ -607,13 +605,25 @@ Note:  LoRA here takes longer due to the maximum adapater loaded, otherwise it w
 ### CUDA, GPU and Google Collab
 ### Installation Instructions
 ### Dataset Access
+To access the dataset, follow the following:
+```python
+from datasets import BioDatasetLoader
 
-## Reproducibility
-use my 48829678
+BioLoader = BioDatasetLoader(); 
+# Load data
+BioLoader.load_dataset()
 
-### Software Environment
-#### Core Dependencies
-#### Supporting Libraries
+# Retrieve training data
+train = BioLoader.train
+
+# Retrieve testing data
+test = BioLoader.test
+
+# Retrieve validation data
+val = BioLoader.validation
+
+```
+
 
 ## Error Analysis
 ### Common Error Patterns in LLM Summarisation
@@ -624,7 +634,37 @@ use my 48829678
 ### 4. Repetition
 ### 5. Terminology Leakage
 
+## Reproducibility
+```python
+seed=4882967
+```
 
+**Random Seeds**:
+- PyTorch: `4882967`
+- NumPy: `4882967`
+- Python: `4882967`
+- Transformers: `4882967`
+
+
+### Software Environment
+#### Core Dependencies
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| Python | 3.10.12 | Base interpreter |
+| PyTorch | 2.1.0+cu121 | Deep learning framework |
+| Transformers | 4.35.2 | Hugging Face model library |
+| Datasets | 2.14.6 | Dataset loading and processing |
+| PEFT | 0.6.0 | Parameter-efficient fine-tuning |
+| Evaluate | 0.4.1 | Metric computation (ROUGE) |
+| NumPy | 1.24.3 | Numerical operations |
+| Accelerate | 0.24.1 | Distributed training utilities |
+#### Supporting Libraries
+```
+tqdm>=4.66.0
+matplotlib>=3.7.1
+typing-extensions>=4.8.0
+```
 ## References
 
 ### Main Literature
