@@ -724,9 +724,9 @@ There is a calcified granuloma located at the top of the right lung.
 ## Project Access
 
 ### CUDA, GPU and Google Collab
-
-### Installation Instructions
-
+ - CUDA Version: 12.2
+ - GPU Driver: 535.104.05 (or use dfault google collab GPU)
+ - Nvidea A100
 ### Dataset Access
 To access the dataset, follow the following:
 ```python
