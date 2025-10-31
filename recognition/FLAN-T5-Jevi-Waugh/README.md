@@ -140,11 +140,41 @@ The preprocessing is very much handled by the `BioDatasetLoader` class in `datas
 
 ## Models and Architectures
 ### FLAN-T5 Architecture
+FLAN-T5 (Fine-tuned Language Net - Text-to-Text Transfer Transformer version 5) is an encoder-decoder transformer model developed by Google. It basically builds on the original T5 acrhitecture with extensive instruction fine-tuning.
+**Main Architectural features:**
+- **Encoder-Decoder Structure**: Separate encoder for input processing and then it has its own decoder for generative outputs.
+- **Multi-Head Attention**: 6-12 heads depending on the model size
+- **Feed-Forward Networks**: Gated linear units (GLU) in each layer
+- **Relative Position Embeddings**: Improves generalization to varying sequence lengths
+
 ### Model types
 #### 1. FLAN-T5-Small
+- **Parameters**: 76,961,152 (77 Million)
+- **Attention Heads**: 8
+- **Hidden Size**: 512
+- **Feed-Forward Size**: 2048
+- **Layers**: 6 encoder + 6 decoder layers
+- **Use Case**: Quick demo and constrained environment
+
 #### 2. FLAN-T5-Base
+- **Parameters**: 247,577,856 (248 Million)
+- **Attention Heads**: 12
+- **Hidden Size**: 768
+- **Feed-Forward Size**: 3072
+- **Layers**: 12 encoder + 12 decoder layers
+- **Use Case**: Higher quality generative results and for deployments
 
 ### Parameter Comparison: Full Fine-Tuning vs LoRA
+| Model | Strategy | Total Parameters | Trainable Parameters | Trainable % | Memory Footprint |
+|-------|----------|------------------|----------------------|-------------|------------------|
+| **FLAN-T5-Small** | Full Fine-Tuning | 76,961,152 | 76,961,152 | 100.00% | ~300 MB |
+| **FLAN-T5-Small** | LoRA (r=16) | 78,730,624 | 1,769,472 | 2.25% | ~310 MB |
+| **FLAN-T5-Base** | Full Fine-Tuning | 247,577,856 | 247,577,856 | 100.00% | ~950 MB |
+| **FLAN-T5-Base** | LoRA (r=32) | 254,655,744 | 7,077,888 | 2.78% | ~980 MB |
+
+- LoRA adds only 1.8M-7.1M parameters (adapter weights) on top of frozen base model
+- Inference speed is very close to being the same between LoRA and full models
+- Training memory in terms of gradients is reduced by 95-98%
 
 ### Fine-tuning in models?
 #### Full Fine-Tuning (FFT)
