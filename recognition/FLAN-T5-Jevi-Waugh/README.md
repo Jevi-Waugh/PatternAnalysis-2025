@@ -2,7 +2,8 @@
 
 Author: Jevi Schallum Waugh
 ## Overview 
-This project investigates the full fine tuning of Google's FLAN-T5 models (small and base) for the task of translating expert radiology reports into an easy laman summary using the BioLaySumm 2025 dataset. There were three main approaches although we focus heavily on two of them. We compared Full fine tuning where all parameters were updated vs LoRA adapter which is a parameter efficient fine tuning methoc (PEFT), updating only a small subset of adpater weights. The third method is an optimization technique inspired by biological evolution that optimizes model parameters without computing gradients. 
+This project investigates the full fine tuning of Google's FLAN-T5 models (small and base) for the task of translating expert radiology reports into an easy laman summary using the BioLaySumm 2025 dataset. There were three main approaches although we focus heavily on two of them. We compared Full fine tuning where all parameters were updated vs LoRA adapter which is a parameter efficient fine tuning methoc (PEFT), updating only a small subset of adpater weights. 
+The third method is an optimisation technique inspired by biological evolution that optimises model parameters without computing gradients, which will be exploreda and trained, but not in its entirety.
 
 This comparative analysis aims to evaluate the trade-offs between compute and model performance for domain-specific text especifically summarisation texts. 
 
@@ -89,13 +90,46 @@ We compare three fine-tuning paradigms:
 The training was initially performed on **Google Colab** with GPU acceleration (Nvidea A100).
 ## Dataset
 
-### Dataset Information
-
 ### Dataset Statistics
 
-### Data Structure
+| Split | Examples |
+|-------|----------|
+| **Train** | 150,454 |
+| **Validation** | 10,000 |
+| **Test** | 10,537 |
+| **Total** | 170,991 |
+
+### Data Structure of the dataset
+
+Each data point contains:
+- **`radiology_report`**: Detailed medical report written in professional terminology
+- **`layman_report`**: Simplified version of the report for patient understanding
+- **`images_path`**: File path to the associated medical image
 
 ### Preprocessing and Tokenisation
+
+The preprocessing pipeline has the following steps:
+
+1. **Prompt Engineering**: A task-specific prefix is prepended to each input:
+   ```
+   "Create a lay summary of this radiology report for a general audience: "
+   ```
+
+2. **Tokenisation**: 
+   - **Model**: FLAN-T5 tokeniser (`google/flan-t5-small` or `google/flan-t5-base`)
+   - **Padding**: Applied to maximum length for efficient batching purposes
+   - **Input Length**: Max 512 tokens (truncated if longer)
+   - **Target Length**: Max 256 tokens (usually half)
+
+3. **Data Collation**: Dynamic padding using Pytorch's `DataCollatorForSeq2Seq` to optimise memory usage during training
+
+4. **Batching**: 
+   - **Small model**: 16 samples per batch
+   - **Base model**: 10 samples per batch (due to larger memory)
+
+The preprocessing is very much handled by the `BioDatasetLoader` class in `dataset.py`, which actually provides a clean interface for loading, tokenising, and batching the data. This has a modular design for simplicty purposes. Refer to later sections for the code and intialisation.
+
+---
 
 ## Evolution Strategies (ES) Algorithm
 ### Overview
