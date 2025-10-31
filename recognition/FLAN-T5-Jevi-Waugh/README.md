@@ -442,6 +442,9 @@ Higher ROUGE scores indicate better summary in terms of quality. Scores range fr
 | **4** | **0.2045** | **0.1656** | **0.7047** | **0.5084** | **0.6493** | **0.6493** | **35.40** |
 
 **Training Time**: 
+### Full Fine-Tuning Training (FLAN-T5-Small)
+![fft small](outputs/small_model_fft/training_curves.png)
+
 
 #### LoRA Fine-Tuning (4 Epochs)
 
@@ -455,6 +458,9 @@ Higher ROUGE scores indicate better summary in terms of quality. Scores range fr
 **Training Time**:
 
 **Note**: Higher training/validation loss values are expected with LoRA due to different loss scaling and limited parameter updates, but ROUGE scores remain competitive.
+### LoRA Training (FLAN-T5-Small)
+![lora small](outputs/small_model_lora/training_curves.png)
+
 
 ---
 
@@ -472,6 +478,8 @@ Higher ROUGE scores indicate better summary in terms of quality. Scores range fr
 *Training interrupted at 24% of Epoch 4 due to Colab session timeout.
 
 **Training Time**: 
+### Full Fine-Tuning Training (FLAN-T5-Base)
+![fft base](outputs/output_full_finetuning_base/training_curves.png)
 
 #### LoRA Fine-Tuning (4 Epochs)
 
@@ -483,6 +491,10 @@ Higher ROUGE scores indicate better summary in terms of quality. Scores range fr
 | **4** | **0.1375** | **0.1147** | **0.7480** | **0.5728** | **0.6999** | **0.7000** | **35.95** |
 
 **Training Time**: 
+
+### LoRA Training (FLAN-T5-base)
+![lora base](outputs/output_lora_base/training_curves.png)
+
 
 #### Evolution Strategies (ES) Training (15 Iterations)
 
@@ -512,7 +524,8 @@ Higher ROUGE scores indicate better summary in terms of quality. Scores range fr
 - **Total Parameters**: 247,577,856 (all parameters perturbed)
 
 **Training Time**: ~45 minutes (2700.89 seconds total)
-
+### Evolution Strategies Training (FLAN-T5-Base)
+![ES Algo](outputs/output_es_flan_base/es_training_curves.png)
 **Performance**:
 - Peak performance at Iteration 9 with mean ROUGE-1 of 0.2181
 - Maximum individual reward of 0.2998 achieved at Iteration 12
@@ -556,6 +569,11 @@ Higher ROUGE scores indicate better summary in terms of quality. Scores range fr
 
 - Full fine-tuning likely would have improved further if completed
 - ES is considered slow due to its stochastic nature in random sampling which may continously change the scores. Hence, it requires a lot more compute in general.
+
+### LoRA vs Full Fine-Tuning Comparison (3 Epochs)
+![lora vs fft ](outputs/lora_vs_fft_comparison_3epochs.png)
+
+
 ---
 
 
@@ -580,25 +598,11 @@ Note:  LoRA here takes longer due to the maximum adapater loaded, otherwise it w
 
 ---
 
-## Visualisations and Plots
-### Plot 1: Evolution Strategies Training (FLAN-T5-Base)
-
-### Plot 2: Full Fine-Tuning Training (FLAN-T5-Base)
-
-### Plot 3: Full Fine-Tuning Training (FLAN-T5-Small)
-
-### Plot 4: LoRA Training (FLAN-T5-Small)
-
-### Plot 5: LoRA Training (FLAN-T5-base)
-
-### Plot 6: LoRA vs Full Fine-Tuning Comparison (3 Epochs)
 
 ### Expected Observations
+This section demonstrates the model's performance on real radiology reports from the validation set. Predictions were generated using the best checkpoint (FLAN-T5-Base with LoRA) with beam search decoding.
 
 ## Prediction Examples
-### How to Generate Predictions
-### Examples 1,2,3 etc...
-
 
 
 ## Project Access
