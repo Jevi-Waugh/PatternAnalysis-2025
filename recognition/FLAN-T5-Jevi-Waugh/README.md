@@ -525,13 +525,62 @@ Higher ROUGE scores indicate better summary in terms of quality. Scores range fr
 
 
 ### Comparative Analysis
-
 #### Strategy Comparison (FLAN-T5-Small, 4 Epochs)
+
+| Strategy | Parameters | GPU Time | ROUGE-1 | ROUGE-2 | ROUGE-L | ROUGE-Lsum |
+|----------|------------|----------|---------|---------|---------|------------|
+| **Full Fine-Tuning** | 76,961,152 |  | 0.7047 | 0.5084 | 0.6493 | 0.6493 |
+| **LoRA** | 1,769,472 |  | **0.7149** | **0.5243** | **0.6619** | **0.6620** |
+
+**Key Findings:**
+- LoRA achieves **slightly higher ROUGE scores** (+1.0-1.6%) with 97.7% fewer parameters
+- LoRA training took **3.3× longer** due to slower per-iteration speed on small models
+- Both strategies converge to similar performance, validating LoRA's effectiveness
 #### Model Size Comparison (LoRA Strategy, 4 Epochs)
+
+| Model | Parameters | GPU Time | ROUGE-1 | ROUGE-2 | ROUGE-L | ROUGE-Lsum |
+|-------|------------|----------|---------|---------|---------|------------|
+| **FLAN-T5-Small** | 1.8M (2.25%) | ~272 min | 0.7149 | 0.5243 | 0.6619 | 0.6620 |
+| **FLAN-T5-Base** | 7.1M (2.78%) | ~510 min | **0.7480** | **0.5728** | **0.6999** | **0.7000** |
+
+**Key Findings:**
+- Base model achieves **+3.3-4.9% ROUGE improvement** over small model
+- Base model required **1.9× longer training time**
+- Performance gains justifies additional compute for production purposes.
+
 #### Training Strategy Comparison (FLAN-T5-Base)
+
+| Strategy | Trainable Params | Training Time | Best ROUGE-1 | Convergence | Stability |
+|----------|------------------|---------------|--------------|-------------|-----------|
+| **Full Fine-Tuning** | 247.6M (100%) | ~6 hrs (stopped early) | 0.7416* (Epoch 3) | Fast | Stable |
+| **LoRA** | 7.1M (2.78%) | ~8.5 hrs (complete) | **0.7480** (Epoch 4) | Fast | Stable |
+| **Evolution Strategies** | 247.6M (100%) | ~45 min (15 iter) | 0.2181 (Iter 9) | slow | High variance |
+
+- Full fine-tuning likely would have improved further if completed
+- ES is considered slow due to its stochastic nature in random sampling which may continously change the scores. Hence, it requires a lot more compute in general.
+---
 
 
 ### Winning Model Performance
+**Winning Configuration**: **FLAN-T5-Base with LoRA (Epoch 3)**
+
+| Metric | Score |
+|--------|-------|
+| ROUGE-1 | **0.7480** |
+| ROUGE-2 | **0.5728** |
+| ROUGE-L | **0.6999** |
+| ROUGE-Lsum | **0.7000** |
+| Average Generation Length | 35.95 tokens |
+
+This configuration achieves the best balance of:
+- High-quality summaries (highest ROUGE scores)
+- Parameter efficiency (2.78% trainable parameters)
+- Reasonable training time (~8.5 hours)
+- Production-ready deployment (lightweight adapters)
+
+Note:  LoRA here takes longer due to the maximum adapater loaded, otherwise it would have taken less time.
+
+---
 ## Visualisations and Plots
 
 ### Plot 1: Evolution Strategies Training (FLAN-T5-Base)
