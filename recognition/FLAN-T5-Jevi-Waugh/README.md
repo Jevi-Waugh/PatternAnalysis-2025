@@ -422,9 +422,107 @@ Seq2SeqTrainingArguments(
 
 ### Evaluation Metrics
 
+All of the models are evaluated using **ROUGE (Recall-Oriented Understudy for Gisting Evaluation)** scores, which are excellent at measuring the overlap between generated expert level summaries and reference summaries for patients:
+
+- **ROUGE-1**: Unigram overlap
+- **ROUGE-2**: Bigram overlap
+- **ROUGE-Lsum**: LCS computed at the summary level
+- **ROUGE-L**: Longest common subsequence
+
+Higher ROUGE scores indicate better summary in terms of quality. Scores range from 0 to 100\%.
+
+---
+
 ### Results Summary
-#### FLAN-T5-Small
+#### Full Fine-Tuning (4 Epochs)
+
+| Epoch | Train Loss | Val Loss | ROUGE-1 | ROUGE-2 | ROUGE-L | ROUGE-Lsum | Gen Length |
+|-------|------------|----------|---------|---------|---------|------------|------------|
+| 1 | 0.7169 | 0.2183 | 0.6450 | 0.4335 | 0.5820 | 0.5819 | 33.79 |
+| 2 | 0.2368 | 0.1824 | 0.6840 | 0.4836 | 0.6262 | 0.6261 | 34.75 |
+| 3 | 0.2131 | 0.1716 | 0.6974 | 0.5010 | 0.6411 | 0.6411 | 35.20 |
+| **4** | **0.2045** | **0.1656** | **0.7047** | **0.5084** | **0.6493** | **0.6493** | **35.40** |
+
+**Training Time**: 
+
+#### LoRA Fine-Tuning (4 Epochs)
+
+| Epoch | Train Loss | Val Loss | ROUGE-1 | ROUGE-2 | ROUGE-L | ROUGE-Lsum | Gen Length |
+|-------|------------|----------|---------|---------|---------|------------|------------|
+| 1 | 1.8099 | 1.5236 | 0.6839 | 0.4817 | 0.6255 | 0.6257 | 35.42 |
+| 2 | 1.5948 | 1.4974 | 0.7073 | 0.5140 | 0.6527 | 0.6529 | 35.04 |
+| 3 | 1.5764 | 1.4946 | 0.7119 | 0.5199 | 0.6585 | 0.6587 | 35.02 |
+| **4** | **1.5640** | **1.4571** | **0.7149** | **0.5243** | **0.6619** | **0.6620** | **35.40** |
+
+**Training Time**:
+
+**Note**: Higher training/validation loss values are expected with LoRA due to different loss scaling and limited parameter updates, but ROUGE scores remain competitive.
+
+---
+
 #### FLAN-T5-Base
+
+#### Full Fine-Tuning (~1.5 Epochs)
+
+| Epoch | Train Loss | Val Loss | ROUGE-1 | ROUGE-2 | ROUGE-L | ROUGE-Lsum | Gen Length |
+|-------|------------|----------|---------|---------|---------|------------|------------|
+| 1 | 0.3631 | 0.1457 | 0.7047 | 0.5124 | 0.6492 | 0.6493 | 34.83 |
+| 2 | 0.1539 | 0.1195 | 0.7349 | 0.5524 | 0.6844 | 0.6843 | 35.61 |
+| 3 | 0.1347 | 0.1113 | 0.7416 | 0.5633 | 0.6925 | 0.6923 | 35.67 |
+| **4*** | **---** | **---** | **---** | **---** | **---** | **---** | **---** |
+
+*Training interrupted at 24% of Epoch 4 due to Colab session timeout.
+
+**Training Time**: 
+
+#### LoRA Fine-Tuning (4 Epochs)
+
+| Epoch | Train Loss | Val Loss | ROUGE-1 | ROUGE-2 | ROUGE-L | ROUGE-Lsum | Gen Length |
+|-------|------------|----------|---------|---------|---------|------------|------------|
+| 1 | 0.2886 | 0.1409 | 0.7217 | 0.5328 | 0.6700 | 0.6699 | 35.93 |
+| 2 | 0.1599 | 0.1246 | 0.7366 | 0.5562 | 0.6868 | 0.6867 | 35.89 |
+| 3 | 0.1451 | 0.1177 | 0.7427 | 0.5647 | 0.6940 | 0.6939 | 36.56 |
+| **4** | **0.1375** | **0.1147** | **0.7480** | **0.5728** | **0.6999** | **0.7000** | **35.95** |
+
+**Training Time**: 
+
+#### Evolution Strategies (ES) Training (15 Iterations)
+
+| Iteration | Mean Reward (ROUGE-1) | Min Reward | Max Reward | Std Dev | Time (s) |
+|-----------|----------------------|------------|------------|---------|----------|
+| 1 | 0.2110 | 0.1764 | 0.2405 | 0.0156 | 191.60 |
+| 2 | 0.2068 | 0.1685 | 0.2409 | 0.0233 | 184.58 |
+| 3 | 0.2047 | 0.1677 | 0.2377 | 0.0193 | 164.51 |
+| 4 | 0.2048 | 0.1835 | 0.2394 | 0.0150 | 172.64 |
+| 5 | 0.2039 | 0.1609 | 0.2715 | 0.0340 | 179.81 |
+| 6 | 0.1952 | 0.1634 | 0.2253 | 0.0193 | 185.39 |
+| 7 | 0.1862 | 0.1577 | 0.2414 | 0.0234 | 203.92 |
+| 8 | 0.2118 | 0.1753 | 0.2585 | 0.0249 | 181.63 |
+| 9 | **0.2181** | 0.1867 | 0.2526 | 0.0208 | 171.58 |
+| 10 | 0.2016 | 0.1673 | 0.2295 | 0.0217 | 183.00 |
+| 11 | 0.2161 | 0.1610 | 0.2532 | 0.0293 | 170.13 |
+| 12 | 0.2137 | 0.1721 | **0.2998** | 0.0372 | 189.70 |
+| 13 | 0.2058 | 0.1846 | 0.2523 | 0.0191 | 164.86 |
+| 14 | 0.2129 | 0.1752 | 0.2451 | 0.0233 | 175.59 |
+| 15 | 0.1983 | 0.1760 | 0.2179 | 0.0121 | 175.54 |
+
+**ES Training Configuration**:
+- **Population Size**: 10 candidate solutions per iteration
+- **Noise Scale (σ)**: 0.001
+- **Learning Rate (α)**: 0.0005
+- **Validation Samples**: 30 samples per fitness evaluation
+- **Total Parameters**: 247,577,856 (all parameters perturbed)
+
+**Training Time**: ~45 minutes (2700.89 seconds total)
+
+**Performance**:
+- Peak performance at Iteration 9 with mean ROUGE-1 of 0.2181
+- Maximum individual reward of 0.2998 achieved at Iteration 12
+- High variance in rewards indicates diverse exploration of parameter space
+- Significantly faster than gradient-based training (~3 min/iteration vs ~50 min/epoch)
+- Final performance (ROUGE-1: 0.1983) significantly lower than LoRA or FFT
+
+
 
 ### Comparative Analysis
 
